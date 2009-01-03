@@ -10,3 +10,4 @@ Install
         source ~/.rake_cap_bash_autocomplete.sh
   
 
+PS: This code is inspired from multiple articles found on google and from git_auto_complete
