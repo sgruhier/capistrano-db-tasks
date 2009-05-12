@@ -15,7 +15,8 @@ Install
 =======
 
 Add it as a plugin
-./script/plugin install 
+./script/plugin install ./script/plugin install git@github.com:sgruhier/capistrano-db-tasks.git
+
 
 
 Example
