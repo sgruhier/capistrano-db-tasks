@@ -16,16 +16,16 @@ Install
 =======
 
 Add it as a plugin
-./script/plugin install git://github.com/sgruhier/capistrano-db-tasks.git
+    ./script/plugin install git://github.com/sgruhier/capistrano-db-tasks.git
 
 Add to config/deploy.rb:
-  require 'vendor/plugins/capistrano-db-tasks/lib/dbtasks'
+    require 'vendor/plugins/capistrano-db-tasks/lib/dbtasks'
   
-  # if you haven't already specified
-  set :rails_env, "production"
+    # if you haven't already specified
+    set :rails_env, "production"
   
-  # if you want to remove the dump file after loading
-  set :db_local_clean, true  
+    # if you want to remove the dump file after loading
+    set :db_local_clean, true  
 
 Example
 =======
