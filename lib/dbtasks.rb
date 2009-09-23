@@ -7,6 +7,7 @@ Capistrano::Configuration.instance.load do |instance|
   
   instance.set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless exists?(:local_rails_env)
   instance.set :stage, 'production' unless exists?(:stage)
+  instance.set :db_local_clean, false unless exists?(:db_local_clean)
   
   namespace :db do
     namespace :local do
@@ -19,7 +20,7 @@ Capistrano::Configuration.instance.load do |instance|
           Database.check(local_db, remote_db)
           
           remote_db.dump.download
-          local_db.load(remote_db.output_file)
+          local_db.load(remote_db.output_file, instance.fetch(:db_local_clean))
         end
       end
     end

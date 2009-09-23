@@ -57,9 +57,11 @@ module Database
       @config = YAML.load_file(File.join('config', 'database.yml'))[@cap.local_rails_env]
     end
     
-    def load(file)
+    # cleanup = true removes the mysqldump file after loading, false leaves it in db/
+    def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       system("bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)} && rake db:migrate") 
+      File.unlink(unzip_file) if cleanup
     end
   end
   
