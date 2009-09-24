@@ -1,8 +1,6 @@
 module Util
   def self.prompt(msg, prompt = "(y)es, (n)o ")
-    ui = HighLine.new
-    ui.say("#{msg}")
-    answer = ui.ask("#{prompt}?  ") do |q|
+    answer = Capistrano::CLI.ui.ask("#{msg} #{prompt} ? ") do |q|
       q.overwrite = false
       q.validate = /^y$|^yes$|^n$|^no$/i
       q.responses[:not_valid] = prompt

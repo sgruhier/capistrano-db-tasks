@@ -31,7 +31,7 @@ module Database
     attr_accessor :output_file
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[@cap.rails_env.to_s] }
+      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
     end
           
     def output_file
@@ -45,9 +45,7 @@ module Database
     
     def download(local_file = "#{output_file}") 
       remote_file = "#{@cap.current_path}/#{output_file}"
-      
-      server = @cap.find_servers(:roles => :db).first
-      @cap.sessions[server].sftp.connect {|tsftp| tsftp.download!(remote_file, local_file) }
+      @cap.get remote_file, local_file
     end
   end
 
@@ -65,9 +63,21 @@ module Database
     end
   end
   
-  def self.check(local_db, remote_db) 
-    unless local_db.mysql? && remote_db.mysql?
-      raise 'Only mysql on remote and local server is supported' 
+  class << self
+    def check(local_db, remote_db) 
+      unless local_db.mysql? && remote_db.mysql?
+        raise 'Only mysql on remote and local server is supported' 
+      end
+    end
+
+    def remote_to_local(instance) 
+      local_db  = Database::Local.new(instance)
+      remote_db = Database::Remote.new(instance)
+
+      check(local_db, remote_db)
+    
+      remote_db.dump.download
+      local_db.load(remote_db.output_file, instance.fetch(:db_local_clean))
     end
   end
 end
