@@ -37,9 +37,9 @@ Add to config/deploy.rb:
 Available tasks
 ===============
 
-* db:local:sync      # Synchronize your local database using remote database data
-* assets:local:sync  # Synchronize your local assets using remote assets
-* app:local:sync     # Synchronize your local assets AND local database using remote assets and database
+    db:local:sync      # Synchronize your local database using remote database data
+    assets:local:sync  # Synchronize your local assets using remote assets
+    app:local:sync     # Synchronize your local assets AND local database using remote assets and database
 
 Example
 =======
