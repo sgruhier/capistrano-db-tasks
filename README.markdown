@@ -44,16 +44,14 @@ Available tasks
 Example
 =======
 
-cap db:local:sync
+    cap db:local:sync
 
-or
-
-cap production db:local:sync if you are using capistrano-ext to have multistages
+    cap production db:local:sync # if you are using capistrano-ext to have multistages
 
 Copyright (c) 2009 [Sébastien Gruhier - XILINUS], released under the MIT license
 
 TODO
 ====
 
-May be change project's name as it's not only database tasks now :)
-Add tests
+* May be change project's name as it's not only database tasks now :)
+* Add tests
