@@ -39,7 +39,7 @@ Capistrano::Configuration.instance.load do |instance|
       desc 'Synchronize your local assets AND database using remote assets and database'
       task :sync do
         puts "Local database     : #{Database::Local.new(instance).database}"
-        puts "Assets directories : #{Asset.to_string(assets_dir)}"
+        puts "Assets directories : #{Asset.to_string(instance)}"
         if Util.prompt "Are you sure you want to erase your local database AND your local assets with server database and assets(#{assets_dir})"
           Database.remote_to_local(instance)
           Asset.remote_to_local(instance)
