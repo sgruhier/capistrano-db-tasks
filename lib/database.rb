@@ -1,6 +1,6 @@
 module Database
   class Base 
-    attr_accessor :config
+    attr_accessor :config, :output_file
     def initialize(cap_instance)
       @cap = cap_instance
     end
@@ -17,6 +17,10 @@ module Database
       @config['database']
     end
     
+    def output_file
+      @output_file ||= "db/dump_#{database}.sql.bz2"
+    end
+    
   private
     def dump_cmd
       "mysqldump #{credentials} #{database}"
@@ -28,24 +32,26 @@ module Database
   end
 
   class Remote < Base
-    attr_accessor :output_file
     def initialize(cap_instance)
       super(cap_instance)
       @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
     end
           
-    def output_file
-      @output_file ||= "db/dump_#{database}.sql.bz2"
-    end
-    
     def dump
       @cap.run "cd #{@cap.current_path}; #{dump_cmd} | bzip2 - - > #{output_file}"
       self
     end
     
-    def download(local_file = "#{output_file}") 
+    def download(local_file = "#{output_file}")
       remote_file = "#{@cap.current_path}/#{output_file}"
       @cap.get remote_file, local_file
+    end
+    
+    # cleanup = true removes the mysqldump file after loading, false leaves it in db/
+    def load(file, cleanup)
+      unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
+      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)}"
+      File.unlink(unzip_file) if cleanup
     end
   end
 
@@ -60,6 +66,16 @@ module Database
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       system("bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)} && rake db:migrate") 
       File.unlink(unzip_file) if cleanup
+    end
+    
+    def dump
+      system "#{dump_cmd} | bzip2 - - > #{output_file}"
+      self
+    end
+    
+    def upload
+      remote_file = "#{@cap.current_path}/#{output_file}"
+      @cap.put output_file, remote_file
     end
   end
   
@@ -78,6 +94,16 @@ module Database
     
       remote_db.dump.download
       local_db.load(remote_db.output_file, instance.fetch(:db_local_clean))
+    end
+    
+    def local_to_remote(instance)
+      local_db  = Database::Local.new(instance)
+      remote_db = Database::Remote.new(instance)
+
+      check(local_db, remote_db)
+      
+      local_db.dump.upload
+      remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
     end
   end
 end

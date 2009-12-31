@@ -11,6 +11,15 @@ Capistrano::Configuration.instance.load do |instance|
   instance.set :assets_dir, 'system' unless exists?(:assets_dir)
   
   namespace :db do
+    namespace :remote do
+      desc 'Synchronize the local database to the remote database'
+      task :sync, :roles => :db do
+        if Util.prompt 'Are you sure you want to REPLACE THE REMOTE DATABASE with local database'
+          Database.local_to_remote(instance)
+        end
+      end
+    end
+    
     namespace :local do
       desc 'Synchronize your local database using remote database data'
       task :sync, :roles => :db do
