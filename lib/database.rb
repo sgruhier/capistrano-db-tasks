@@ -10,7 +10,7 @@ module Database
     end
     
     def credentials
-      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '')
+      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
     end
     
     def database
