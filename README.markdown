@@ -6,7 +6,7 @@ Add database AND assets tasks to capistrano to a Rails project.
 Currently
 
 * It only supports mysql (both side remote and local)
-* Only synchronize remote to local (cap db:local:sync)
+* Synchronize remote to local and local to remote 
 
 Commands mysql, mysqldump, bzip2 and unbzip2 must be in your PATH
 
@@ -41,17 +41,27 @@ Available tasks
     assets:local:sync  # Synchronize your local assets using remote assets
     app:local:sync     # Synchronize your local assets AND local database using remote assets and database
 
+    db:remote:sync     # Synchronize the local database to the remote database
+
 Example
 =======
 
     cap db:local:sync
-
     cap production db:local:sync # if you are using capistrano-ext to have multistages
 
-Copyright (c) 2009 [Sébastien Gruhier - XILINUS], released under the MIT license
+
+Contributors
+============
+
+* tilsammans (http://github.com/tilsammansee)
+
 
 TODO
 ====
 
 * May be change project's name as it's not only database tasks now :)
+* Add synchronization of assets from local to remote
 * Add tests
+
+
+Copyright (c) 2009 [Sébastien Gruhier - XILINUS], released under the MIT license
