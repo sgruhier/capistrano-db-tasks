@@ -29,6 +29,16 @@ Capistrano::Configuration.instance.load do |instance|
         end
       end
     end
+    
+    desc 'Synchronize your local database using remote database data'
+    task :pull do 
+      db.local.sync
+    end
+    
+    desc 'Synchronize the local database to the remote database'
+    task :push do 
+      db.remote.sync
+    end
   end
   
   namespace :assets do
@@ -40,6 +50,11 @@ Capistrano::Configuration.instance.load do |instance|
           Asset.remote_to_local(instance)
         end
       end
+    end
+    
+    desc 'Synchronize your local assets using remote assets'
+    task :pull do 
+      assets.local.sync
     end
   end
   
@@ -55,5 +70,10 @@ Capistrano::Configuration.instance.load do |instance|
         end
       end
     end
+    desc 'Synchronize your local assets AND database using remote assets and database'
+    task :pull do 
+      app.local.sync
+    end
+    
   end
 end

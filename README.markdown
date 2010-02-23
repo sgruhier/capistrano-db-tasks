@@ -37,17 +37,17 @@ Add to config/deploy.rb:
 Available tasks
 ===============
 
-    db:local:sync      # Synchronize your local database using remote database data
-    assets:local:sync  # Synchronize your local assets using remote assets
-    app:local:sync     # Synchronize your local assets AND local database using remote assets and database
+    db:pull      # Synchronize your local database using remote database data
+    assets:pull  # Synchronize your local assets using remote assets
+    app:pull     # Synchronize your local assets AND local database using remote assets and database
 
-    db:remote:sync     # Synchronize the local database to the remote database
+    db:push     # Synchronize the local database to the remote database
 
 Example
 =======
 
-    cap db:local:sync
-    cap production db:local:sync # if you are using capistrano-ext to have multistages
+    cap db:pull
+    cap production db:pull # if you are using capistrano-ext to have multistages
 
 
 Contributors
