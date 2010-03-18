@@ -9,8 +9,16 @@ module Database
       @config['adapter'] == 'mysql'
     end
     
+    def postgresql?
+      @config['adapter'] == 'postgresql'
+    end
+    
     def credentials
-      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '')
+      if mysql?
+        " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '')
+      elsif postgresql?
+        " -U #{@config['username']} " # FIXME how to provide password in pg_dump command line?
+      end
     end
     
     def database
@@ -19,11 +27,19 @@ module Database
     
   private
     def dump_cmd
-      "mysqldump #{credentials} #{database}"
+      if mysql?
+        "mysqldump #{credentials} #{database}"
+      elsif postgresql?
+        "pg_dump #{credentials} -c -O #{database}"
+      end
     end
 
     def import_cmd(file)
-      "mysql #{credentials} -D #{database} < #{file}"
+      if mysql?
+        "mysql #{credentials} -D #{database} < #{file}"
+      else
+        "psql #{credentials} #{database} < #{file}"
+      end
     end
   end
 
@@ -66,7 +82,7 @@ module Database
   end
   
   def self.check(local_db, remote_db) 
-    unless local_db.mysql? && remote_db.mysql?
+    unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
       raise 'Only mysql on remote and local server is supported' 
     end
   end
