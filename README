@@ -1,0 +1,13 @@
+Author: Sébastien Gruhier - http://www.xilinus.com - http://www.mapeed.com
+License: MIT
+
+Autocomplete for cap and rake command for bash shell.
+
+Install
+
+1) Copy rake_cap_bash_autocomplete.sh to somewhere (e.g. ~/.rake_cap_bash_autocomplete.sh).                                                             
+2) Added the following line to your .bashrc:                                                                            
+        source ~/.rake_cap_bash_autocomplete.sh
+  
+
+PS: This code is inspired from multiple articles found on google and from git_auto_complete
