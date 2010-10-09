@@ -6,7 +6,7 @@ module Database
     end
     
     def mysql?
-      @config['adapter'] == 'mysql'
+      @config['adapter'] == 'mysql' || @config['adapter'] == 'mysql2'
     end
     
     def credentials
@@ -50,7 +50,7 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} rake db:drop db:create && #{import_cmd(unzip_file)}"
       File.unlink(unzip_file) if cleanup
     end
   end
@@ -75,7 +75,7 @@ module Database
     
     def upload
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.put output_file, remote_file
+      @cap.upload output_file, remote_file
     end
   end
   
