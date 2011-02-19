@@ -6,7 +6,7 @@ module Database
     end
     
     def mysql?
-      @config['adapter'] == 'mysql'
+      @config['adapter'] =~ /^mysql/
     end
     
     def postgresql?
@@ -83,7 +83,7 @@ module Database
   
   def self.check(local_db, remote_db) 
     unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
-      raise 'Only mysql on remote and local server is supported' 
+      raise 'Only mysql or postgresql on remote and local server is supported' 
     end
   end
 end
