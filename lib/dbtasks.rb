@@ -9,7 +9,8 @@ Capistrano::Configuration.instance.load do |instance|
   instance.set :stage, 'production' unless exists?(:stage)
   instance.set :db_local_clean, false unless exists?(:db_local_clean)
   instance.set :assets_dir, 'system' unless exists?(:assets_dir)
-  
+  instance.set :local_assets_dir, 'public' unless exists?(:local_assets_dir)
+
   namespace :db do
     namespace :remote do
       desc 'Synchronize the local database to the remote database'
