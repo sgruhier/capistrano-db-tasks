@@ -5,12 +5,12 @@ module Database
       @cap = cap_instance
     end
     
-    def mysql?
-      @config['adapter'] == 'mysql' || @config['adapter'] == 'mysql2'
+    def postgresql?
+      @config['adapter'] == 'postgresql' || @config['adapter'] == 'postgresql'
     end
     
     def credentials
-      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
+      "-U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
     end
     
     def database
@@ -22,19 +22,23 @@ module Database
     end
     
   private
+
     def dump_cmd
-      "mysqldump #{credentials} #{database}"
+      "pg_dump #{credentials} #{database}"
     end
 
     def import_cmd(file)
-      "mysql #{credentials} -D #{database} < #{file}"
+      "psql #{credentials} #{database} < #{file}"
     end
+  
   end
 
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
+      yaml_string = ""
+      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c,s,d| yaml_string += d }
+      @config = YAML.load(yaml_string)[(@cap.rails_env || 'production').to_s]
     end
           
     def dump
@@ -50,7 +54,7 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
       File.unlink(unzip_file) if cleanup
     end
   end
@@ -64,7 +68,7 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      system("bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)} && rake db:migrate") 
+      system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate") 
       File.unlink(unzip_file) if cleanup
     end
     
@@ -81,8 +85,8 @@ module Database
   
   class << self
     def check(local_db, remote_db) 
-      unless local_db.mysql? && remote_db.mysql?
-        raise 'Only mysql on remote and local server is supported' 
+      unless local_db.postgresql? && remote_db.postgresql?
+        raise 'Only postgresql on remote and local server is supported' 
       end
     end
 
