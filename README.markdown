@@ -1,6 +1,9 @@
 CapistranoDbTasks
 =================
 
+Forked by BigFive to convert to Postgres and add Asset pushing
+---------------------------------------------------------------
+
 Add database AND assets tasks to capistrano to a Rails project.
 
 Currently
@@ -60,7 +63,6 @@ TODO
 ====
 
 * May be change project's name as it's not only database tasks now :)
-* Add synchronization of assets from local to remote
 * Add tests
 
 
