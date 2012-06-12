@@ -2,7 +2,7 @@ CapistranoDbTasks
 =================
 
 Forked by BigFive to convert to Postgres and add Asset pushing
----------------------------------------------------------------
+------------------------------------------------------------
 
 Add database AND assets tasks to capistrano to a Rails project.
 
