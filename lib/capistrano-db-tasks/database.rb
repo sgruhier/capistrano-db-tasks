@@ -34,6 +34,7 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
+      # YAML::ENGINE.yamler = 'syck'
       @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
     end
           
