@@ -10,7 +10,7 @@ module Database
     end
     
     def credentials
-      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
+      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
     end
     
     def database
@@ -34,6 +34,7 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
+      # YAML::ENGINE.yamler = 'syck'
       @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
     end
           
@@ -50,7 +51,7 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
       File.unlink(unzip_file) if cleanup
     end
   end
@@ -58,13 +59,13 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load_file(File.join('config', 'database.yml'))[@cap.local_rails_env]
+      @config = YAML.load_file(File.join('config', 'database.yml'))['local']
     end
     
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      system("bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)} && rake db:migrate") 
+      system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}") 
       File.unlink(unzip_file) if cleanup
     end
     
