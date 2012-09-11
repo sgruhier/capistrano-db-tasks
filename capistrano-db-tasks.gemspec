@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Sebastien Gruhier"]
   s.email       = ["sebastien.gruhier@xilinus.com"]
   s.homepage    = "https://github.com/sgruhier/capistrano-db-tasks"
-  s.summary     = %q{TODO}
-  s.description = %q{TODO}
+  s.summary     = "A collection of capistrano tasks for syncing assets and databases"
+  s.description = "A collection of capistrano tasks for syncing assets and databases"
 
   s.rubyforge_project = "capistrano-db-tasks"
 
