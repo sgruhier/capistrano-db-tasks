@@ -9,6 +9,14 @@ module Asset
     end
   end
 
+  def local_to_remote(cap)
+    servers = cap.find_servers :roles => :app
+    port = cap.port rescue 22
+    [cap.assets_dir].flatten.each do |dir|
+      system("rsync -a --del -vv --progress --rsh='ssh -p #{port}' #{cap.local_assets_dir} #{cap.user}@#{servers.first}:#{cap.shared_path}/#{dir}")
+    end
+  end
+
   def to_string(cap)
     [cap.assets_dir].flatten.join(" ")
   end
