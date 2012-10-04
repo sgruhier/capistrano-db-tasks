@@ -16,10 +16,15 @@ module Database
     def database
       @config['database']
     end
+
+    def current_time
+      Time.now.strftime("%Y-%m-%d-%H%M%S")
+    end
     
     def output_file
-      @output_file ||= "db/dump_#{database}.sql.bz2"
+      @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
     end
+
     
   private
     def dump_cmd
