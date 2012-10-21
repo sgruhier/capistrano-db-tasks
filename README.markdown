@@ -24,11 +24,12 @@ Or add the gem to your ```Gemfile```
 
 ```ruby
     group :development do
-      gem 'capistrano-unicorn', :require => false
+      gem 'capistrano-db-tasks', :require => false
     end
 ```
 
 Add to config/deploy.rb:
+
     require 'capistrano-db-tasks'
   
     # if you haven't already specified
