@@ -15,11 +15,21 @@ Feel free to fork and to add more database support or new tasks.
 Install
 =======
 
-Add it as a plugin
-    ./script/plugin install git://github.com/sgruhier/capistrano-db-tasks.git
+```
+gem install capistrano-db-tasks
+```
+    
+Or add the gem to your ```Gemfile```
+
+
+```ruby
+    group :development do
+      gem 'capistrano-unicorn', :require => false
+    end
+```
 
 Add to config/deploy.rb:
-    require 'vendor/plugins/capistrano-db-tasks/lib/dbtasks'
+    require 'capistrano-db-tasks'
   
     # if you haven't already specified
     set :rails_env, "production"
