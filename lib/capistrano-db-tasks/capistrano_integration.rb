@@ -86,3 +86,7 @@ module CapistranoDbTasks
     end
   end
 end
+
+if Capistrano::Configuration.instance
+  CapistranoDbTasks::CapistranoIntegration.load_into(Capistrano::Configuration.instance)
+end
