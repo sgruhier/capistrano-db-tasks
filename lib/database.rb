@@ -5,12 +5,20 @@ module Database
       @cap = cap_instance
     end
     
+    def mysql?
+      @config['adapter'] =~ /^mysql/
+    end
+    
     def postgresql?
-      @config['adapter'] == 'postgresql' || @config['adapter'] == 'postgresql'
+      %w(postgresql pg).include? @config['adapter']
     end
     
     def credentials
-      "-U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
+      if mysql?
+        " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '')
+      elsif postgresql?
+        "-U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
+      end
     end
     
     def database
@@ -24,11 +32,19 @@ module Database
   private
 
     def dump_cmd
-      "pg_dump #{credentials} #{database}"
+      if mysql?
+        "mysqldump #{credentials} #{database}"
+      elsif postgresql?
+        "pg_dump #{credentials} -c -O #{database}"
+      end
     end
 
     def import_cmd(file)
-      "psql #{credentials} #{database} < #{file}"
+      if mysql?
+        "mysql #{credentials} -D #{database} < #{file}"
+      else
+        "psql #{credentials} #{database} < #{file}"
+      end
     end
   
   end
@@ -83,10 +99,11 @@ module Database
     end
   end
   
+
   class << self
     def check(local_db, remote_db) 
-      unless local_db.postgresql? && remote_db.postgresql?
-        raise 'Only postgresql on remote and local server is supported' 
+      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
+        raise 'Only mysql or postgresql on remote and local server is supported' 
       end
     end
 
@@ -110,4 +127,5 @@ module Database
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
     end
   end
+
 end
