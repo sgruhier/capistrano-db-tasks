@@ -58,7 +58,7 @@ module Database
     def initialize(cap_instance)
       super(cap_instance)
       # YAML::ENGINE.yamler = 'syck'
-      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
+      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[@cap.rails_env] }
     end
           
     def dump
@@ -83,7 +83,7 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load_file(File.join('config', 'database.yml'))['local']
+      @config = YAML.load_file(File.join('config', 'database.yml'))[@cap.local_rails_env]
     end
     
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/

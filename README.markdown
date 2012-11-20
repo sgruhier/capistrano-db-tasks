@@ -1,28 +1,25 @@
 CapistranoDbTasks
 =================
 
-Forked by BigFive to convert to Postgres and add Asset pushing
-==============================================================
-
 Add database AND assets tasks to capistrano to a Rails project.
 
 Currently
 
-* It only supports mysql (both side remote and local)
-* Synchronize remote to local and local to remote 
+* It only supports mysql and postgresql (both side remote and local)
+* Synchronize assets remote to local and local to remote 
 
-Commands mysql, mysqldump, bzip2 and unbzip2 must be in your PATH
+Commands mysql, mysqldump (or pg_dump, psql), bzip2 and unbzip2 must be in your PATH
 
 Feel free to fork and to add more database support or new tasks.
 
 Install
 =======
 
-Add it as a plugin
-    ./script/plugin install git://github.com/sgruhier/capistrano-db-tasks.git
+Add it as a gem
+    gem "capistrano-db-tasks", git: "https://github.com/bigfive/capistrano-db-tasks.git" 
 
 Add to config/deploy.rb:
-    require 'vendor/plugins/capistrano-db-tasks/lib/dbtasks'
+    require 'capistrano-db-tasks'
   
     # if you haven't already specified
     set :rails_env, "production"
@@ -40,11 +37,14 @@ Add to config/deploy.rb:
 Available tasks
 ===============
 
-    db:pull      # Synchronize your local database using remote database data
-    assets:pull  # Synchronize your local assets using remote assets
-    app:pull     # Synchronize your local assets AND local database using remote assets and database
+    app:local:sync      || app:pull     # Synchronize your local assets AND database using remote assets and database
+    app:remote:sync     || app:push     # Synchronize your remote assets AND database using local assets and database
+    
+    assets:local:sync   || assets:pull  # Synchronize your local assets using remote assets
+    assets:remote:sync  || assets:push  # Synchronize your remote assets using local assets
 
-    db:push     # Synchronize the local database to the remote database
+    db:local:sync       || db:pull      # Synchronize your local database using remote database data
+    db:remote:sync      || db:push      # Synchronize your remote database using local database data
 
 Example
 =======
@@ -57,13 +57,14 @@ Contributors
 ============
 
 * tilsammans (http://github.com/tilsammansee)
-
+* bigfive    (http://github.com/bigfive)
+* jakemauer  (http://github.com/jakemauer)
+* tjoneseng  (http://github.com/tjoneseng)
 
 TODO
 ====
 
 * May be change project's name as it's not only database tasks now :)
 * Add tests
-
 
 Copyright (c) 2009 [Sébastien Gruhier - XILINUS], released under the MIT license

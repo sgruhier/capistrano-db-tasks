@@ -1,1 +1,2 @@
-require  "/Users/seb/Developer/Ruby/capistrano-db-tasks/lib/capistrano-db-tasks/dbtasks"
+require "capistrano"
+require File.expand_path("#{File.dirname(__FILE__)}/capistrano-db-tasks/dbtasks")
