@@ -17,7 +17,7 @@ module Database
       if mysql?
         " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
       elsif postgresql?
-        "-U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
+        " -U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
       end
     end
     
@@ -38,7 +38,7 @@ module Database
 
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database}"
+        "mysqldump #{credentials} #{database} --lock-tables=false"
       elsif postgresql?
         "pg_dump #{credentials} -c -O #{database}"
       end
@@ -47,7 +47,7 @@ module Database
     def import_cmd(file)
       if mysql?
         "mysql #{credentials} -D #{database} < #{file}"
-      else
+      elsif postgresql?
         "psql #{credentials} #{database} < #{file}"
       end
     end
@@ -62,7 +62,7 @@ module Database
     end
           
     def dump
-      @cap.run "cd #{@cap.current_path}; #{dump_cmd} | bzip2 - - > #{output_file}"
+      @cap.run "cd #{@cap.current_path} && #{dump_cmd} | bzip2 - - > #{output_file}"
       self
     end
     
@@ -74,9 +74,9 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      # @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
-      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
-      File.unlink(unzip_file) if cleanup
+      # @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
+      @cap.run("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
     end
   end
 
