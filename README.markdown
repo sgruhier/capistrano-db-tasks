@@ -15,7 +15,7 @@ Feel free to fork and to add more database support or new tasks.
 Install
 =======
 
-Add it as a gem
+Add it as a gem:
     gem "capistrano-db-tasks", git: "https://github.com/bigfive/capistrano-db-tasks.git" 
 
 Add to config/deploy.rb:
