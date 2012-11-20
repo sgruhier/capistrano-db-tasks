@@ -1,0 +1,1 @@
+require  "/Users/seb/Developer/Ruby/capistrano-db-tasks/lib/capistrano-db-tasks/dbtasks"

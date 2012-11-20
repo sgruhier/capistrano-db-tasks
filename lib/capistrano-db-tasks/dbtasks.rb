@@ -61,6 +61,19 @@ Capistrano::Configuration.instance.load do |instance|
           Asset.remote_to_local(instance)
         end
       end
+
+      desc 'Synchronize your remote assets using local assets'
+      task :remote_sync, :roles => :app do
+        puts "Assets directories: #{Asset.to_string(instance)}"
+        if Util.prompt "Are you sure you want to erase your remote assets with your local assets"
+          Asset.local_to_remote(instance)
+        end
+      end
+    end
+
+    desc 'Synchronize your remote assets using local assets'
+    task :push do 
+      assets.local.remote_sync
     end
     
     desc 'Synchronize your local assets using remote assets'
