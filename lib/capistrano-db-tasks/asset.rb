@@ -13,7 +13,7 @@ module Asset
     servers = cap.find_servers :roles => :app
     port = cap.port rescue 22
     [cap.assets_dir].flatten.each do |dir|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{cap.local_assets_dir} #{cap.user}@#{servers.first}:#{cap.current_path}/#{dir}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dir} #{cap.user}@#{servers.first}:#{cap.current_path}/#{cap.local_assets_dir}")
     end
   end
 
