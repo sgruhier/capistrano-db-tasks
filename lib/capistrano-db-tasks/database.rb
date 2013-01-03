@@ -6,39 +6,63 @@ module Database
     end
     
     def mysql?
-      @config['adapter'] == 'mysql' || @config['adapter'] == 'mysql2'
+      @config['adapter'] =~ /^mysql/
+    end
+    
+    def postgresql?
+      %w(postgresql pg).include? @config['adapter']
     end
     
     def credentials
-      " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
+      if mysql?
+        " -u #{@config['username']} " + (@config['password'] ? " -p\"#{@config['password']}\" " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
+      elsif postgresql?
+        " -U #{@config['username']} " + (@config['host'] ? " -h #{@config['host']}" : '')
+      end
     end
     
     def database
       @config['database']
     end
-    
-    def output_file
-      @output_file ||= "db/dump_#{database}.sql.bz2"
+
+    def current_time
+      Time.now.strftime("%Y-%m-%d-%H%M%S")
     end
     
+    def output_file
+      @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
+    end
+
+    
   private
+
     def dump_cmd
-      "mysqldump #{credentials} #{database}"
+      if mysql?
+        "mysqldump #{credentials} #{database} --lock-tables=false"
+      elsif postgresql?
+        "pg_dump #{credentials} -c -O #{database}"
+      end
     end
 
     def import_cmd(file)
-      "mysql #{credentials} -D #{database} < #{file}"
+      if mysql?
+        "mysql #{credentials} -D #{database} < #{file}"
+      elsif postgresql?
+        "psql #{credentials} #{database} < #{file}"
+      end
     end
+  
   end
 
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[(@cap.rails_env || 'production').to_s] }
+      # YAML::ENGINE.yamler = 'syck'
+      @cap.run("cat #{@cap.current_path}/config/database.yml") { |c, s, d| @config = YAML.load(d)[@cap.rails_env] }
     end
           
     def dump
-      @cap.run "cd #{@cap.current_path}; #{dump_cmd} | bzip2 - - > #{output_file}"
+      @cap.run "cd #{@cap.current_path} && #{dump_cmd} | bzip2 - - > #{output_file}"
       self
     end
     
@@ -50,8 +74,9 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      @cap.run "cd #{@cap.current_path}; bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} rake db:drop db:create && #{import_cmd(unzip_file)}"
-      File.unlink(unzip_file) if cleanup
+      # @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
+      @cap.run("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
     end
   end
 
@@ -64,7 +89,8 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
-      system("bunzip2 -f #{file} && rake db:drop db:create && #{import_cmd(unzip_file)} && rake db:migrate") 
+      # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate") 
+      system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}") 
       File.unlink(unzip_file) if cleanup
     end
     
@@ -79,10 +105,11 @@ module Database
     end
   end
   
+
   class << self
     def check(local_db, remote_db) 
-      unless local_db.mysql? && remote_db.mysql?
-        raise 'Only mysql on remote and local server is supported' 
+      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
+        raise 'Only mysql or postgresql on remote and local server is supported' 
       end
     end
 
@@ -106,4 +133,5 @@ module Database
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
     end
   end
+
 end
