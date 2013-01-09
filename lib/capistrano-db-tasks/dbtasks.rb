@@ -5,7 +5,7 @@ if Capistrano::Configuration.instance(false)
     require File.expand_path("#{File.dirname(__FILE__)}/util")
     require File.expand_path("#{File.dirname(__FILE__)}/database")
     require File.expand_path("#{File.dirname(__FILE__)}/asset")
-    
+
     instance.set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless exists?(:local_rails_env)
     instance.set :rails_env, 'production' unless exists?(:rails_env)
     instance.set :stage, 'production' unless exists?(:stage)
@@ -22,7 +22,7 @@ if Capistrano::Configuration.instance(false)
           end
         end
       end
-      
+
       namespace :local do
         desc 'Synchronize your local database using remote database data'
         task :sync, :roles => :db do
@@ -32,18 +32,18 @@ if Capistrano::Configuration.instance(false)
           end
         end
       end
-      
+
       desc 'Synchronize your local database using remote database data'
-      task :pull do 
+      task :pull do
         db.local.sync
       end
-      
+
       desc 'Synchronize your remote database using local database data'
-      task :push do 
+      task :push do
         db.remote.sync
       end
     end
-    
+
     namespace :assets do
       namespace :remote do
         desc 'Synchronize your remote assets using local assets'
@@ -66,16 +66,16 @@ if Capistrano::Configuration.instance(false)
       end
 
       desc 'Synchronize your local assets using remote assets'
-      task :pull do 
+      task :pull do
         assets.local.sync
       end
-      
+
       desc 'Synchronize your remote assets using local assets'
-      task :push do 
+      task :push do
         assets.remote.sync
       end
     end
-    
+
     namespace :app do
       namespace :remote do
         desc 'Synchronize your remote assets AND database using local assets and database'
@@ -98,17 +98,17 @@ if Capistrano::Configuration.instance(false)
           end
         end
       end
-      
+
       desc 'Synchronize your local assets AND database using remote assets and database'
-      task :pull do 
+      task :pull do
         app.local.sync
       end
 
       desc 'Synchronize your remote assets AND database using local assets and database'
-      task :push do 
+      task :push do
         app.remote.sync
       end
-      
+
     end
   end
 
