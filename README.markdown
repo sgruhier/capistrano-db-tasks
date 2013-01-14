@@ -18,7 +18,7 @@ Install
 Add it as a gem:
 
 ```ruby
-    gem "capistrano-db-tasks", require: false
+    gem "capistrano-db-tasks", :require => false
 ```
 
 Add to config/deploy.rb:
