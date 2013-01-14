@@ -52,6 +52,14 @@ module Database
       end
     end
 
+    def create_cmd
+      if mysql?
+        "mysql #{credentials} --execute \"CREATE DATABASE IF NOT EXISTS #{database};\""
+      elsif postgresql?
+        # no idea about postgresql
+      end
+    end
+
   end
 
   class Remote < Base
@@ -78,6 +86,7 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
+      @cap.run "#{create_cmd}"
       @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
       @cap.run("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
     end
@@ -94,6 +103,7 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
+      system("#{create_cmd}")
       system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
       File.unlink(unzip_file) if cleanup
     end
