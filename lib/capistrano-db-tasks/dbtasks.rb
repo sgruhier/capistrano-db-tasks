@@ -12,6 +12,7 @@ if Capistrano::Configuration.instance(false)
     instance.set :db_local_clean, false unless exists?(:db_local_clean)
     instance.set :assets_dir, 'system' unless exists?(:assets_dir)
     instance.set :local_assets_dir, 'public' unless exists?(:local_assets_dir)
+    instance.set :database_yml_path, 'config/database.yml' unless exists?(:database_yml_path)
 
     namespace :db do
       namespace :remote do
