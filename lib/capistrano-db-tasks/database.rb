@@ -95,7 +95,7 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load_file(File.join('config', 'database.yml'))[@cap.local_rails_env.to_s]
+      @config = YAML.load_file(@cap.database_yml_path)[@cap.local_rails_env.to_s]
       puts "local #{@config}"
     end
 
