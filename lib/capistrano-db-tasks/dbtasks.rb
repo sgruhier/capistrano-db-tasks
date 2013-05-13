@@ -59,7 +59,9 @@ if Capistrano::Configuration.instance(false)
         task :sync, :roles => :app do
           puts "Assets directories: #{assets_dir}"
           if Util.prompt "Are you sure you want to erase your server assets with local assets"
-            Asset.local_to_remote(instance)
+            if Util.sign_with_stage(instance.stage)
+              Asset.local_to_remote(instance)
+            end
           end
         end
       end
