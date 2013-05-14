@@ -17,8 +17,14 @@ if Capistrano::Configuration.instance(false)
       namespace :remote do
         desc 'Synchronize your remote database using local database data'
         task :sync, :roles => :db do
-          if Util.prompt 'Are you sure you want to REPLACE THE REMOTE DATABASE with local database'
-            Database.local_to_remote(instance)
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "Local database: #{local_db}"
+          puts "Remote database: #{remote_db}"
+          if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE (#{remote_db}) with local database (#{local_db})"
+            if Util.sign_with_stage(instance.stage)
+              Database.local_to_remote(instance)
+            end
           end
         end
       end
@@ -26,8 +32,11 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local database using remote database data'
         task :sync, :roles => :db do
-          puts "Local database: #{Database::Local.new(instance).database}"
-          if Util.prompt 'Are you sure you want to erase your local database with server database'
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "Local database: #{local_db}"
+          puts "Remote database: #{remote_db}"
+          if Util.prompt "Are you sure you want to erase your local database (#{local_db}) with server database (#{remote_db})"
             Database.remote_to_local(instance)
           end
         end
@@ -50,7 +59,9 @@ if Capistrano::Configuration.instance(false)
         task :sync, :roles => :app do
           puts "Assets directories: #{assets_dir}"
           if Util.prompt "Are you sure you want to erase your server assets with local assets"
-            Asset.local_to_remote(instance)
+            if Util.sign_with_stage(instance.stage)
+              Asset.local_to_remote(instance)
+            end
           end
         end
       end
