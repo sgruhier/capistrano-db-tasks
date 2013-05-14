@@ -21,7 +21,7 @@ if Capistrano::Configuration.instance(false)
           remote_db = Database::Remote.new(instance).database
           puts "\n"
           puts "Local database: #{local_db}"
-          puts "#{red}Remote database: #{remote_db}"
+          puts "#{red} Remote database: #{remote_db}"
           puts "\n"
           if Util.prompt "Replace remote database?"
             if Util.sign_with_stage(instance.stage)
