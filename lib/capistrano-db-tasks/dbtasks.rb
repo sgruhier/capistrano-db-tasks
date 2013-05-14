@@ -19,9 +19,11 @@ if Capistrano::Configuration.instance(false)
         task :sync, :roles => :db do
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
+          puts "\n"
           puts "Local database: #{local_db}"
-          puts "Remote database: #{remote_db}"
-          if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE (#{remote_db}) with local database (#{local_db})"
+          puts "#{red}Remote database: #{remote_db}"
+          puts "\n"
+          if Util.prompt "Replace remote database?"
             if Util.sign_with_stage(instance.stage)
               Database.local_to_remote(instance)
             end
@@ -34,9 +36,11 @@ if Capistrano::Configuration.instance(false)
         task :sync, :roles => :db do
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
-          puts "Local database: #{local_db}"
+          puts "\n"
+          puts "Local database : #{local_db}"
           puts "Remote database: #{remote_db}"
-          if Util.prompt "Are you sure you want to erase your local database (#{local_db}) with server database (#{remote_db})"
+          puts "\n"
+          if Util.prompt "Replace local database?"
             Database.remote_to_local(instance)
           end
         end
@@ -57,8 +61,10 @@ if Capistrano::Configuration.instance(false)
       namespace :remote do
         desc 'Synchronize your remote assets using local assets'
         task :sync, :roles => :app do
+          puts "\n"
           puts "Assets directories: #{assets_dir}"
-          if Util.prompt "Are you sure you want to erase your server assets with local assets"
+          puts "\n"
+          if Util.prompt "Replace remote assets?"
             if Util.sign_with_stage(instance.stage)
               Asset.local_to_remote(instance)
             end
@@ -69,8 +75,10 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local assets using remote assets'
         task :sync, :roles => :app do
-          puts "Assets directories: #{local_assets_dir}"
-          if Util.prompt "Are you sure you want to erase your local assets with server assets"
+          puts "\n"
+          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "\n"
+          if Util.prompt "Replace local assets?"
             Asset.remote_to_local(instance)
           end
         end
@@ -91,9 +99,18 @@ if Capistrano::Configuration.instance(false)
       namespace :remote do
         desc 'Synchronize your remote assets AND database using local assets and database'
         task :sync do
-          if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{assets_dir})"
-            Database.local_to_remote(instance)
-            Asset.local_to_remote(instance)
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Local database   : #{local_db}"
+          puts "Remote database  : #{remote_db}"
+          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "\n"
+          if Util.prompt "Replace remote database AND assets?"
+            if Util.sign_with_stage(instance.stage)
+              Database.local_to_remote(instance)
+              Asset.local_to_remote(instance)
+            end
           end
         end
       end
@@ -101,9 +118,14 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local assets AND database using remote assets and database'
         task :sync do
-          puts "Local database     : #{Database::Local.new(instance).database}"
-          puts "Assets directories : #{local_assets_dir}"
-          if Util.prompt "Are you sure you want to erase your local database AND your local assets with server database and assets(#{assets_dir})"
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Local database   : #{local_db}"
+          puts "Remote database  : #{remote_db}"
+          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "\n"
+          if Util.prompt "Replace local database AND assets?"
             Database.remote_to_local(instance)
             Asset.remote_to_local(instance)
           end
