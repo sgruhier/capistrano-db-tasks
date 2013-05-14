@@ -20,10 +20,10 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database: #{local_db}"
-          puts "#{red} Remote database: #{remote_db}"
+          puts "Local database : " + "#{local_db}".green
+          puts "Remote database: " + "#{remote_db}".red
           puts "\n"
-          if Util.prompt "Replace remote database?"
+          if Util.prompt "Replace remote database?".red
             if Util.sign_with_stage(instance.stage)
               Database.local_to_remote(instance)
             end
@@ -37,10 +37,10 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database : #{local_db}"
-          puts "Remote database: #{remote_db}"
+          puts "Local database : " + "#{local_db}".green
+          puts "Remote database: " + "#{remote_db}".red
           puts "\n"
-          if Util.prompt "Replace local database?"
+          if Util.prompt "Replace local database?".green
             Database.remote_to_local(instance)
           end
         end
@@ -62,9 +62,9 @@ if Capistrano::Configuration.instance(false)
         desc 'Synchronize your remote assets using local assets'
         task :sync, :roles => :app do
           puts "\n"
-          puts "Assets directories: #{assets_dir}"
+          puts "Asset directories: " + assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace remote assets?"
+          if Util.prompt "Replace remote assets?".red
             if Util.sign_with_stage(instance.stage)
               Asset.local_to_remote(instance)
             end
@@ -76,9 +76,9 @@ if Capistrano::Configuration.instance(false)
         desc 'Synchronize your local assets using remote assets'
         task :sync, :roles => :app do
           puts "\n"
-          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace local assets?"
+          if Util.prompt "Replace local assets?".green
             Asset.remote_to_local(instance)
           end
         end
@@ -102,11 +102,11 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database   : #{local_db}"
-          puts "Remote database  : #{remote_db}"
-          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "Local database   : " + "#{local_db}".green
+          puts "Remote database  : " + "#{remote_db}".red
+          puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace remote database AND assets?"
+          if Util.prompt "Replace remote database AND assets?".red
             if Util.sign_with_stage(instance.stage)
               Database.local_to_remote(instance)
               Asset.local_to_remote(instance)
@@ -121,11 +121,11 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database   : #{local_db}"
-          puts "Remote database  : #{remote_db}"
-          puts "Asset directories: #{local_assets_dir.join(', ')}"
+          puts "Local database   : " + "#{local_db}".green
+          puts "Remote database  : " + "#{remote_db}".red
+          puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace local database AND assets?"
+          if Util.prompt "Replace local database AND assets?".green
             Database.remote_to_local(instance)
             Asset.remote_to_local(instance)
           end

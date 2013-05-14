@@ -9,7 +9,7 @@ module Util
   end
 
   def self.sign_with_stage(stage)
-    answer = Capistrano::CLI.ui.ask("WARNING: This is a destructive action. Please type the stage that you're deploying to in order to continue: ") do |q|
+    answer = Capistrano::CLI.ui.ask("WARNING".red + ": This is a destructive action. Please type the stage that you're deploying to in order to continue: ") do |q|
       q.overwrite = false
     end
     answer == stage
