@@ -20,7 +20,7 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database : " + "#{local_db}".green
+          puts "Local database : " + "#{local_db}".blue
           puts "Remote database: " + "#{remote_db}".red
           puts "\n"
           if Util.prompt "Replace remote database?".red
@@ -37,10 +37,10 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Remote database: " + "#{remote_db}".green
-          puts "Local database : " + "#{local_db}".red
+          puts "Remote database: " + "#{remote_db}".red
+          puts "Local database : " + "#{local_db}".blue
           puts "\n"
-          if Util.prompt "Replace local database?".red
+          if Util.prompt "Replace local database?".blue
             Database.remote_to_local(instance)
           end
         end
@@ -78,7 +78,7 @@ if Capistrano::Configuration.instance(false)
           puts "\n"
           puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace local assets?".green
+          if Util.prompt "Replace local assets?".blue
             Asset.remote_to_local(instance)
           end
         end
@@ -102,7 +102,7 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Local database   : " + "#{local_db}".green
+          puts "Local database   : " + "#{local_db}".blue
           puts "Remote database  : " + "#{remote_db}".red
           puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
@@ -121,11 +121,11 @@ if Capistrano::Configuration.instance(false)
           local_db = Database::Local.new(instance).database
           remote_db = Database::Remote.new(instance).database
           puts "\n"
-          puts "Remote database  : " + "#{remote_db}".green
-          puts "Local database   : " + "#{local_db}".red
+          puts "Remote database  : " + "#{remote_db}".red
+          puts "Local database   : " + "#{local_db}".blue
           puts "Asset directories: " + local_assets_dir.join(', ')
           puts "\n"
-          if Util.prompt "Replace local database AND assets?".red
+          if Util.prompt "Replace local database AND assets?".blue
             Database.remote_to_local(instance)
             Asset.remote_to_local(instance)
           end
