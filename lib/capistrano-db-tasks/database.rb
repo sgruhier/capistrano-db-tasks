@@ -96,6 +96,9 @@ module Database
     def initialize(cap_instance)
       super(cap_instance)
       @config = YAML.load_file(@cap.database_yml_path)[@cap.local_rails_env.to_s]
+      if @cap.database_yml_key
+        @config = @config[@cap.database_yml_key]
+      end
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
