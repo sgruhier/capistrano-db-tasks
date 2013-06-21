@@ -6,7 +6,7 @@ if Capistrano::Configuration.instance(false)
     require File.expand_path("#{File.dirname(__FILE__)}/database")
     require File.expand_path("#{File.dirname(__FILE__)}/asset")
 
-    instance.set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless exists?(:local_rails_env)
+    instance.set :local_rails_env, 'development' unless exists?(:local_rails_env)
     instance.set :rails_env, 'production' unless exists?(:rails_env)
     instance.set :db_local_clean, false unless exists?(:db_local_clean)
     instance.set :assets_dir, 'system' unless exists?(:assets_dir)
