@@ -70,6 +70,9 @@ module Database
         @config += d
       end
       @config = YAML.load(@config)[@cap.rails_env.to_s]
+      if @cap.database_yml_key
+        @config = @config[@cap.database_yml_key]
+      end
     end
 
     def dump
