@@ -7,7 +7,7 @@ module Asset
     [cap.assets_dir].flatten.each_with_index do |dir, index|
       dir = Pathname.new(dir).cleanpath
       local_dir = Pathname.new([cap.local_assets_dir].flatten[index]).cleanpath
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{build_args(cap)} #{cap.user}@#{servers.first}:#{cap.current_path}/#{dir} #{local_dir}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{build_args(cap)} #{cap.user}@#{servers.first}:#{cap.current_path}/#{dir}/ ./#{local_dir}/")
     end
   end
 
@@ -17,7 +17,7 @@ module Asset
     [cap.assets_dir].flatten.each_with_index do |dir, index|
       dir = Pathname.new(dir).cleanpath
       local_dir = Pathname.new([cap.local_assets_dir].flatten[index]).cleanpath
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{build_args(cap)} ./#{dir} #{cap.user}@#{servers.first}:#{cap.current_path}/#{local_dir}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{build_args(cap)} ./#{dir}/ #{cap.user}@#{servers.first}:#{cap.current_path}/#{local_dir}/")
     end
   end
 
