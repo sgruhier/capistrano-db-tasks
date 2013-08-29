@@ -69,7 +69,16 @@ module Database
       @cap.run("cat #{@cap.current_path}/#{@cap.database_yml_path}") do |c, s, d|
         @config += d
       end
-      @config = YAML.load(@config)[@cap.rails_env.to_s]
+      @config = YAML.load(@config)
+      env_config = @config[@cap.local_rails_env.to_s]
+
+      # Merge environment config
+      if env_config
+        @config.deep_merge!(env_config)
+        @config.delete(@cap.local_rails_env.to_s)
+      end
+
+      # Custom key
       if @cap.database_yml_key
         @config = @config[@cap.database_yml_key]
       end
@@ -98,7 +107,16 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load_file(@cap.database_yml_path)[@cap.local_rails_env.to_s]
+      @config = YAML.load_file(@cap.database_yml_path)
+      env_config = @config[@cap.local_rails_env.to_s]
+
+      # Merge environment config
+      if env_config
+        @config.deep_merge!(env_config)
+        @config.delete(@cap.local_rails_env.to_s)
+      end
+
+      # Custom key
       if @cap.database_yml_key
         @config = @config[@cap.database_yml_key]
       end
