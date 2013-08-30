@@ -69,13 +69,14 @@ module Database
       @cap.run("cat #{@cap.current_path}/#{@cap.database_yml_path}") do |c, s, d|
         @config += d
       end
+
       @config = YAML.load(@config)
-      env_config = @config[@cap.local_rails_env.to_s]
+      env_config = @config[@cap.rails_env.to_s]
 
       # Merge environment config
       if env_config
         @config.deep_merge!(env_config)
-        @config.delete(@cap.local_rails_env.to_s)
+        @config.delete(@cap.rails_env.to_s)
       end
 
       # Custom key
