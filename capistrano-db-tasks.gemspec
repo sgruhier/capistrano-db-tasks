@@ -19,4 +19,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_development_dependency "capistrano", "> 2.0.0"
+  s.add_runtime_dependency("colored", "~> 1.2")
+  s.add_runtime_dependency("deep_merge", "~> 1.0.0")
 end

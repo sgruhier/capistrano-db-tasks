@@ -6,18 +6,30 @@ if Capistrano::Configuration.instance(false)
     require File.expand_path("#{File.dirname(__FILE__)}/database")
     require File.expand_path("#{File.dirname(__FILE__)}/asset")
 
-    instance.set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless exists?(:local_rails_env)
+    instance.set :local_rails_env, 'development' unless exists?(:local_rails_env)
     instance.set :rails_env, 'production' unless exists?(:rails_env)
     instance.set :db_local_clean, false unless exists?(:db_local_clean)
-    instance.set :assets_dir, 'system' unless exists?(:assets_dir)
-    instance.set :local_assets_dir, 'public' unless exists?(:local_assets_dir)
+    instance.set :assets_dir, %w(public/system) unless exists?(:assets_dir)
+    instance.set :local_assets_dir, %w(public/system) unless exists?(:local_assets_dir)
+    instance.set :rsync_args, [] unless exists?(:rsync_args)
+    instance.set :exclude_assets, '%w(.sass-cache .DS_Store)' unless exists?(:exclude_assets)
+    instance.set :database_yml_path, 'config/database.yml' unless exists?(:database_yml_path)
+    instance.set :database_yml_key, false unless exists?(:database_yml_key)
 
     namespace :db do
       namespace :remote do
         desc 'Synchronize your remote database using local database data'
         task :sync, :roles => :db do
-          if Util.prompt 'Are you sure you want to REPLACE THE REMOTE DATABASE with local database'
-            Database.local_to_remote(instance)
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Local database : " + "#{local_db}".blue
+          puts "Remote database: " + "#{remote_db}".red
+          puts "\n"
+          if Util.prompt "Replace remote database?".red
+            if Util.sign_with_stage(instance.stage)
+              Database.local_to_remote(instance)
+            end
           end
         end
       end
@@ -25,8 +37,13 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local database using remote database data'
         task :sync, :roles => :db do
-          puts "Local database: #{Database::Local.new(instance).database}"
-          if Util.prompt 'Are you sure you want to erase your local database with server database'
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Remote database: " + "#{remote_db}".red
+          puts "Local database : " + "#{local_db}".blue
+          puts "\n"
+          if Util.prompt "Replace local database?".blue
             Database.remote_to_local(instance)
           end
         end
@@ -47,9 +64,13 @@ if Capistrano::Configuration.instance(false)
       namespace :remote do
         desc 'Synchronize your remote assets using local assets'
         task :sync, :roles => :app do
-          puts "Assets directories: #{assets_dir}"
-          if Util.prompt "Are you sure you want to erase your server assets with local assets"
-            Asset.local_to_remote(instance)
+          puts "\n"
+          puts "Asset directories: " + assets_dir.join(', ')
+          puts "\n"
+          if Util.prompt "Replace remote assets?".red
+            if Util.sign_with_stage(instance.stage)
+              Asset.local_to_remote(instance)
+            end
           end
         end
       end
@@ -57,8 +78,10 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local assets using remote assets'
         task :sync, :roles => :app do
-          puts "Assets directories: #{local_assets_dir}"
-          if Util.prompt "Are you sure you want to erase your local assets with server assets"
+          puts "\n"
+          puts "Asset directories: " + local_assets_dir.join(', ')
+          puts "\n"
+          if Util.prompt "Replace local assets?".blue
             Asset.remote_to_local(instance)
           end
         end
@@ -79,9 +102,18 @@ if Capistrano::Configuration.instance(false)
       namespace :remote do
         desc 'Synchronize your remote assets AND database using local assets and database'
         task :sync do
-          if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{assets_dir})"
-            Database.local_to_remote(instance)
-            Asset.local_to_remote(instance)
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Local database   : " + "#{local_db}".blue
+          puts "Remote database  : " + "#{remote_db}".red
+          puts "Asset directories: " + local_assets_dir.join(', ')
+          puts "\n"
+          if Util.prompt "Replace remote database AND assets?".red
+            if Util.sign_with_stage(instance.stage)
+              Database.local_to_remote(instance)
+              Asset.local_to_remote(instance)
+            end
           end
         end
       end
@@ -89,9 +121,14 @@ if Capistrano::Configuration.instance(false)
       namespace :local do
         desc 'Synchronize your local assets AND database using remote assets and database'
         task :sync do
-          puts "Local database     : #{Database::Local.new(instance).database}"
-          puts "Assets directories : #{local_assets_dir}"
-          if Util.prompt "Are you sure you want to erase your local database AND your local assets with server database and assets(#{assets_dir})"
+          local_db = Database::Local.new(instance).database
+          remote_db = Database::Remote.new(instance).database
+          puts "\n"
+          puts "Remote database  : " + "#{remote_db}".red
+          puts "Local database   : " + "#{local_db}".blue
+          puts "Asset directories: " + local_assets_dir.join(', ')
+          puts "\n"
+          if Util.prompt "Replace local database AND assets?".blue
             Database.remote_to_local(instance)
             Asset.remote_to_local(instance)
           end

@@ -18,7 +18,7 @@ Install
 Add it as a gem:
 
 ```ruby
-    gem "capistrano-db-tasks", require: false
+    gem "capistrano-db-tasks", :require => false
 ```
 
 Add to config/deploy.rb:
@@ -36,7 +36,7 @@ Add to config/deploy.rb:
     # This directory must be in your shared directory on the server
     set :assets_dir, %w(public/assets public/att)
 
-    # if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
+    # if you want to work on a specific local environment (default = 'development')
     set :locals_rails_env, "production"
 ```
 
