@@ -61,7 +61,7 @@ module Database
       @cap.run("cat #{@cap.current_path}/config/database.yml") do |c, s, d|
         @config += d
       end
-      @config = YAML.load(@config)[@cap.rails_env.to_s]
+      @config = YAML.load(ERB.new(@config).result)[@cap.local_rails_env.to_s]
     end
 
     def dump
@@ -86,7 +86,7 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load_file(File.join('config', 'database.yml'))[@cap.local_rails_env.to_s]
+      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[@cap.local_rails_env.to_s]
       puts "local #{@config}"
     end
 
