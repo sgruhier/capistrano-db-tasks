@@ -71,7 +71,7 @@ module Database
 
     def download(local_file = "#{output_file}")
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.get remote_file, local_file
+      @cap.get remote_file, local_file, :via => :scp
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
@@ -105,7 +105,7 @@ module Database
 
     def upload
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.upload output_file, remote_file
+      @cap.upload output_file, remote_file, :via => :scp
     end
   end
 
