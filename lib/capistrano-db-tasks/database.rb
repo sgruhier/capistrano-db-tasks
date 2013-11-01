@@ -95,8 +95,15 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
+      @cap.logger.info("executing local: bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
       system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
-      File.unlink(unzip_file) if cleanup
+      if cleanup
+        @cap.logger.info("removing #{unzip_file}")
+        File.unlink(unzip_file)
+      else
+        @cap.logger.info("leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)")
+      end
+      @cap.logger.info("Completed database import")
     end
 
     def dump
