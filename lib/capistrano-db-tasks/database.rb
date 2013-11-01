@@ -15,7 +15,8 @@ module Database
 
     def credentials
       if mysql?
-        (@config['username'] ? " -u #{@config['username']} " : '') + (@config['password'] ? " -p'#{@config['password']}' " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
+        username = @config['username'] || @config['user']
+        (username ? " -u #{username} " : '') + (@config['password'] ? " -p'#{@config['password']}' " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
       elsif postgresql?
         (@config['username'] ? " -U #{@config['username']} " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
       end
@@ -61,7 +62,7 @@ module Database
       @cap.run("cat #{@cap.current_path}/config/database.yml") do |c, s, d|
         @config += d
       end
-      @config = YAML.load(ERB.new(@config).result)[@cap.local_rails_env.to_s]
+      @config = YAML.load(ERB.new(@config).result)[@cap.rails_env.to_s]
     end
 
     def dump
@@ -94,8 +95,15 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
+      @cap.logger.info("executing local: bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
       system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
-      File.unlink(unzip_file) if cleanup
+      if cleanup
+        @cap.logger.info("removing #{unzip_file}")
+        File.unlink(unzip_file)
+      else
+        @cap.logger.info("leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)")
+      end
+      @cap.logger.info("Completed database import")
     end
 
     def dump
