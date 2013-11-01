@@ -15,7 +15,8 @@ module Database
 
     def credentials
       if mysql?
-        (@config['username'] ? " -u #{@config['username']} " : '') + (@config['password'] ? " -p'#{@config['password']}' " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
+        username = @config['username'] || @config['user']
+        (username ? " -u #{username} " : '') + (@config['password'] ? " -p'#{@config['password']}' " : '') + (@config['host'] ? " -h #{@config['host']}" : '') + (@config['socket'] ? " -S#{@config['socket']}" : '')
       elsif postgresql?
         (@config['username'] ? " -U #{@config['username']} " : '') + (@config['host'] ? " -h #{@config['host']}" : '')
       end
