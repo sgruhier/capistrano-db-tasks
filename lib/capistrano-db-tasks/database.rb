@@ -34,6 +34,9 @@ module Database
       @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
     end
 
+    def pgpass
+      "PGPASSWORD='#{@config['password']}'" if @config['password']
+    end
 
   private
 
@@ -41,7 +44,7 @@ module Database
       if mysql?
         "mysqldump #{credentials} #{database} --lock-tables=false"
       elsif postgresql?
-        "pg_dump #{credentials} -c -O #{database}"
+        "#{pgpass} pg_dump #{credentials} -c -O #{database}"
       end
     end
 
@@ -49,7 +52,7 @@ module Database
       if mysql?
         "mysql #{credentials} -D #{database} < #{file}"
       elsif postgresql?
-        "psql #{credentials} #{database} < #{file}"
+        "#{pgpass} psql #{credentials} #{database} < #{file}"
       end
     end
 
