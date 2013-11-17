@@ -34,22 +34,29 @@ module Database
       @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
     end
 
+    def db_environment
+      if mysql?
+        ''
+      elsif postgresql?
+        @config['password'] ? "PGPASSWORD='#{@config['password']}' " : ''
+      end
+    end
 
   private
 
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database} --lock-tables=false"
+        "#{db_environment}mysqldump #{credentials} #{database} --lock-tables=false"
       elsif postgresql?
-        "pg_dump #{credentials} -c -O #{database}"
+        "#{db_environment}pg_dump #{credentials} -c -O #{database}"
       end
     end
 
     def import_cmd(file)
       if mysql?
-        "mysql #{credentials} -D #{database} < #{file}"
+        "#{db_environment}mysql #{credentials} -D #{database} < #{file}"
       elsif postgresql?
-        "psql #{credentials} #{database} < #{file}"
+        "#{db_environment}psql #{credentials} #{database} < #{file}"
       end
     end
 
