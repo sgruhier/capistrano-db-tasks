@@ -40,6 +40,11 @@ Add to config/deploy.rb:
     set :locals_rails_env, "production"
 ```
 
+Add to .gitignore
+```yml
+    /db/*.sql
+```
+
 Available tasks
 ===============
 
