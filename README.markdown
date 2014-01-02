@@ -2,6 +2,7 @@ CapistranoDbTasks
 =================
 
 Add database AND assets tasks to capistrano to a Rails project.
+It only works with capistrano 2. Any pull requests for capistrano 3 support are welcome :)
 
 Currently
 
