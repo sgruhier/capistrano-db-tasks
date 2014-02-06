@@ -2,6 +2,7 @@ CapistranoDbTasks
 =================
 
 Add database AND assets tasks to capistrano to a Rails project.
+It only works with capistrano 2. Any pull requests for capistrano 3 support are welcome :)
 
 Currently
 
@@ -38,6 +39,11 @@ Add to config/deploy.rb:
 
     # if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
     set :locals_rails_env, "production"
+```
+
+Add to .gitignore
+```yml
+    /db/*.sql
 ```
 
 Available tasks
