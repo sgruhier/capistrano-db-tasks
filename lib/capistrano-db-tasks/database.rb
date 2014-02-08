@@ -61,36 +61,33 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = ""
-      @cap.run("cat #{@cap.current_path}/config/database.yml") do |c, s, d|
-        @config += d
-      end
-      @config = YAML.load(ERB.new(@config).result)[@cap.rails_env.to_s]
+      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
+      @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
     end
 
     def dump
-      @cap.run "cd #{@cap.current_path} && #{dump_cmd} | bzip2 - - > #{output_file}"
+      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | bzip2 - - > #{output_file}"
       self
     end
 
     def download(local_file = "#{output_file}")
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.get remote_file, local_file, :via => :scp
+      @cap.download! remote_file, local_file
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
-      @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} && #{import_cmd(unzip_file)}"
-      @cap.run("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
+      @cap.execute "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.fetch(:rails_env)} && #{import_cmd(unzip_file)}"
+      @cap.execute("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
     end
   end
 
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[@cap.local_rails_env.to_s]
+      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[fetch(:local_rails_env).to_s]
       puts "local #{@config}"
     end
 
@@ -98,15 +95,15 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
-      @cap.logger.info("executing local: bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
+      @cap.info "executing local: bunzip2 -f #{file} && #{import_cmd(unzip_file)}"
       system("bunzip2 -f #{file} && #{import_cmd(unzip_file)}")
       if cleanup
-        @cap.logger.info("removing #{unzip_file}")
+        @cap.info "removing #{unzip_file}"
         File.unlink(unzip_file)
       else
-        @cap.logger.info("leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)")
+        @cap.info "leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)"
       end
-      @cap.logger.info("Completed database import")
+      @cap.info "Completed database import"
     end
 
     def dump
@@ -116,7 +113,7 @@ module Database
 
     def upload
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.upload output_file, remote_file, :via => :scp
+      @cap.upload! output_file, remote_file
     end
   end
 
