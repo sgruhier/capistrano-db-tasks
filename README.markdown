@@ -36,6 +36,7 @@ Add to config/deploy.rb:
     # If you want to import assets, you can change default asset dir (default = system)
     # This directory must be in your shared directory on the server
     set :assets_dir, %w(public/assets public/att)
+    set :local_assets_dir, %w(public/assets public/att)
 
     # if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
     set :locals_rails_env, "production"

@@ -12,7 +12,7 @@ namespace :db do
   namespace :remote do
     desc 'Synchronize your remote database using local database data'
     task :sync do
-      on roles(:db) do 
+      on roles(:db) do
         if Util.prompt 'Are you sure you want to REPLACE THE REMOTE DATABASE with local database'
           Database.local_to_remote(self)
         end
@@ -42,7 +42,7 @@ end
 namespace :assets do
   namespace :remote do
     desc 'Synchronize your remote assets using local assets'
-    task :sync do 
+    task :sync do
       on roles(:app) do
         puts "Assets directories: #{fetch(:assets_dir)}"
         if Util.prompt "Are you sure you want to erase your server assets with local assets"
@@ -75,7 +75,7 @@ namespace :app do
   namespace :remote do
     desc 'Synchronize your remote assets AND database using local assets and database'
     task :sync do
-      if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{assets_dir})"
+      if Util.prompt "Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{fetch(:assets_dir)})"
         Database.local_to_remote(self)
         Asset.local_to_remote(self)
       end
@@ -87,7 +87,7 @@ namespace :app do
     task :sync do
       puts "Local database     : #{Database::Local.new(self).database}"
       puts "Assets directories : #{fetch(:local_assets_dir)}"
-      if Util.prompt "Are you sure you want to erase your local database AND your local assets with server database and assets(#{assets_dir})"
+      if Util.prompt "Are you sure you want to erase your local database AND your local assets with server database and assets(#{fetch(:assets_dir)})"
         Database.remote_to_local(self)
         Asset.remote_to_local(self)
       end
