@@ -72,8 +72,15 @@ module Database
     end
 
     def download(local_file = "#{output_file}")
-      remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.download! remote_file, local_file
+      @cap.download! dump_file_path, local_file
+    end
+
+    def clean_dump_if_needed
+      if @cap.fetch(:db_remote_clean)
+        @cap.execute "rm -f #{dump_file_path}"
+      else
+        @cap.info "leaving #{dump_file_path} on the server (add \"set :db_remote_clean, true\" to deploy.rb to remove)"
+      end
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
@@ -82,6 +89,12 @@ module Database
       # @cap.run "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.rails_env} bundle exec rake db:drop db:create && #{import_cmd(unzip_file)}"
       @cap.execute "cd #{@cap.current_path} && bunzip2 -f #{file} && RAILS_ENV=#{@cap.fetch(:rails_env)} && #{import_cmd(unzip_file)}"
       @cap.execute("cd #{@cap.current_path} && rm #{unzip_file}") if cleanup
+    end
+
+    private
+
+    def dump_file_path
+      "#{@cap.current_path}/#{output_file}"
     end
   end
 
@@ -132,7 +145,11 @@ module Database
 
       check(local_db, remote_db)
 
-      remote_db.dump.download
+      begin
+        remote_db.dump.download
+      ensure
+        remote_db.clean_dump_if_needed
+      end
       local_db.load(remote_db.output_file, instance.fetch(:db_local_clean))
     end
 
