@@ -30,8 +30,11 @@ Add to config/deploy.rb:
     # if you haven't already specified
     set :rails_env, "production"
 
-    # if you want to remove the dump file after loading
+    # if you want to remove the local dump file after loading
     set :db_local_clean, true
+
+    # if you want to remove the dump file from the server after downloading
+    set :db_remote_clean, true
 
     # If you want to import assets, you can change default asset dir (default = system)
     # This directory must be in your shared directory on the server
