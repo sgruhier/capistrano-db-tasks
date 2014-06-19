@@ -77,8 +77,13 @@ namespace :app do
     desc 'Synchronize your remote assets AND database using local assets and database'
     task :sync do
       if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{fetch(:assets_dir)})")
-        Database.local_to_remote(self)
-        Asset.local_to_remote(self)
+        on roles(:db) do
+          Database.local_to_remote(self)
+        end
+
+        on roles(:app) do
+          Asset.local_to_remote(self)
+        end
       end
     end
   end
@@ -89,8 +94,13 @@ namespace :app do
       puts "Local database     : #{Database::Local.new(self).database}"
       puts "Assets directories : #{fetch(:local_assets_dir)}"
       if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your local database AND your local assets with server database and assets(#{fetch(:assets_dir)})")
-        Database.remote_to_local(self)
-        Asset.remote_to_local(self)
+        on roles(:db) do
+          Database.remote_to_local(self)
+        end
+
+        on roles(:app) do
+          Asset.remote_to_local(self)
+        end
       end
     end
   end
