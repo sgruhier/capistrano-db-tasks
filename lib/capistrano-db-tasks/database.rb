@@ -18,7 +18,7 @@ module Database
       if mysql?
         username = @config['username'] || @config['user']
         credential_params << " -u #{username} " if username
-        credential_params << " -p '#{@config['password']}' " if @config['password']
+        credential_params << " -p'#{@config['password']}' " if @config['password']
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -S #{@config['socket']} " if @config['socket']
         credential_params << " -P #{@config['port']} " if @config['port']
