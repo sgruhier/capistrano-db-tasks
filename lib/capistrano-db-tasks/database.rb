@@ -38,7 +38,7 @@ module Database
 
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database} --lock-tables=false"
+        "mysqldump #{credentials} #{database} --lock-tables=false #{ignore_tables_subcmd}"
       elsif postgresql?
         "pg_dump #{credentials} -c -O #{database}"
       end
@@ -60,6 +60,18 @@ module Database
       end
     end
 
+    def ignore_tables_subcmd
+      if mysql?
+        @cap.fetch(:db_ignore_tables, []).inject([]) do |a, t|
+          if t !~ /\./
+            t = "#{database}.#{t}"
+          end
+          a << "--ignore-table=#{t}"
+        end.join(" ")
+      elsif postgresql?
+        # no idea about postgresql
+      end
+    end
   end
 
   class Remote < Base
