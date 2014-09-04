@@ -50,6 +50,9 @@ Add to .gitignore
     /db/*.sql
 ```
 
+
+[How to install bzip2 on Windows](http://stackoverflow.com/a/25625988/3324219)
+
 Available tasks
 ===============
 
