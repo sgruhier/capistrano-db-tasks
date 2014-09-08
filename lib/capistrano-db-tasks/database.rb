@@ -170,6 +170,7 @@ module Database
 
       local_db.dump.upload
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
+      File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
   end
 
