@@ -20,7 +20,11 @@ Add it as a gem:
 
 ```ruby
     gem "capistrano-db-tasks", require: false
+
+    # If you're using postgresql of version less than 9.2
+    gem "capistrano-db-tasks", github: 'ryancheung/capistrano-db-tasks', branch: 'postgresql-9.2', require: false
 ```
+
 
 Add to config/deploy.rb:
 
