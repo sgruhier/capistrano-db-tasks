@@ -19,6 +19,13 @@ namespace :db do
         end
       end
     end
+    
+    desc 'Dumps database to db folder after that we can take it from there'
+    task :backup do
+      on roles(:db) do
+        Database.backup(self)
+      end
+    end
   end
 
   namespace :local do
