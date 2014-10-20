@@ -172,6 +172,11 @@ module Database
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
       File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
+    
+    def backup(instance)
+      remote_db = Database::Remote.new(instance)
+      remote_db.dump
+    end
   end
 
 end
