@@ -77,6 +77,7 @@ Available tasks
 
     db:local:sync       || db:pull      # Synchronize your local database using remote database data
     db:remote:sync      || db:push      # Synchronize your remote database using local database data
+    db:remote:backup                    # Dumps database to db folder after that we can take it from there
 
 Example
 =======
