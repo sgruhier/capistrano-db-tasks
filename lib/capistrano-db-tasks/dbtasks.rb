@@ -8,12 +8,14 @@ set :db_local_clean, false unless fetch(:db_local_clean)
 set :assets_dir, 'system' unless fetch(:assets_dir)
 set :local_assets_dir, 'public' unless fetch(:local_assets_dir)
 set :skip_data_sync_confirm, (ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.downcase == 'true')
+set :disallow_pushing, false unless fetch(:disallow_pushing)
 
 namespace :db do
   namespace :remote do
     desc 'Synchronize your remote database using local database data'
     task :sync do
       on roles(:db) do
+        raise "pushing is disabled, set disallow_pushing to false to carry out this operation" if fetch(:disallow_pushing)
         if fetch(:skip_data_sync_confirm) || Util.prompt('Are you sure you want to REPLACE THE REMOTE DATABASE with local database')
           Database.local_to_remote(self)
         end
@@ -46,6 +48,7 @@ namespace :assets do
     task :sync do
       on roles(:app) do
         puts "Assets directories: #{fetch(:assets_dir)}"
+        raise "pushing is disabled, set disallow_pushing to false to carry out this operation" if fetch(:disallow_pushing)
         if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your server assets with local assets")
           Asset.local_to_remote(self)
         end
@@ -76,6 +79,7 @@ namespace :app do
   namespace :remote do
     desc 'Synchronize your remote assets AND database using local assets and database'
     task :sync do
+      raise "pushing is disabled, set disallow_pushing to false to carry out this operation" if fetch(:disallow_pushing)
       if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{fetch(:assets_dir)})")
         on roles(:db) do
           Database.local_to_remote(self)

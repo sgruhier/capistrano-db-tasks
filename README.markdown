@@ -43,6 +43,9 @@ Add to config/deploy.rb:
 
     # if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
     set :locals_rails_env, "production"
+
+    # if you are highly paranoid and want to prevent any push operation to the server
+    set :disallow_pushing, true
 ```
 
 Add to .gitignore
