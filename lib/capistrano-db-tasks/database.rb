@@ -40,7 +40,7 @@ module Database
     end
 
     def output_file
-      @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
+      @output_file ||= "#{@cap.fetch(:db_backup_dir)}/#{database}_#{current_time}.sql.bz2"
     end
 
     def pgpass
