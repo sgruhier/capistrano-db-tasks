@@ -1,0 +1,31 @@
+namespace :assets do
+  namespace :remote do
+    desc 'Synchronize your remote assets using local assets'
+    task :sync => 'capistrano_db_tasks:check_can_push' do
+      on roles(:app) do
+        puts "Assets directories: #{fetch(:assets_dir)}"
+        if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your server assets with local assets")
+          Asset.local_to_remote(self)
+        end
+      end
+    end
+  end
+
+  namespace :local do
+    desc 'Synchronize your local assets using remote assets'
+    task :sync do
+      on roles(:app) do
+        puts "Assets directories: #{fetch(:local_assets_dir)}"
+        if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your local assets with server assets")
+          Asset.remote_to_local(self)
+        end
+      end
+    end
+  end
+
+  desc 'Synchronize your local assets using remote assets'
+  task :pull => "assets:local:sync"
+
+  desc 'Synchronize your remote assets using local assets'
+  task :push => "assets:remote:sync"
+end

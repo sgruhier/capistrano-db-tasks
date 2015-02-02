@@ -1,0 +1,5 @@
+namespace :capistrano_db_tasks do
+  task :check_can_push do
+    raise "pushing is disabled, set disallow_pushing to false to carry out this operation" if fetch(:disallow_pushing)
+  end
+end

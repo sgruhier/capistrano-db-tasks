@@ -71,8 +71,13 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
-      @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
+
+      @cap.within @cap.current_path do
+        @cap.with rails_env: @cap.fetch(:rails_env) do
+          @config = @cap.capture(:rake, 'capistrano_db_tasks:config', '2>/dev/null')
+        end
+      end
+      @config = YAML.load(@config)
     end
 
     def dump
