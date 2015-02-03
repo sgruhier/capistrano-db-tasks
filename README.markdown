@@ -19,14 +19,18 @@ Install
 Add it as a gem:
 
 ```ruby
-    gem "capistrano-db-tasks", require: false
+    gem "capistrano/db-tasks"
+```
+
+Add to Capfile:
+
+```ruby
+    require 'capistrano/db-tasks'
 ```
 
 Add to config/deploy.rb:
 
 ```ruby
-    require 'capistrano-db-tasks'
-
     # if you haven't already specified
     set :rails_env, "production"
 
