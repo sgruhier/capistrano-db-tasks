@@ -15,15 +15,16 @@ module Database
 
     def credentials
       credential_params = ""
+      username = @config['username'] || @config['user']
+
       if mysql?
-        username = @config['username'] || @config['user']
         credential_params << " -u #{username} " if username
         credential_params << " -p'#{@config['password']}' " if @config['password']
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -S #{@config['socket']} " if @config['socket']
         credential_params << " -P #{@config['port']} " if @config['port']
       elsif postgresql?
-        credential_params << " -U #{@config['username']} " if @config['username']
+        credential_params << " -U #{username} " if username
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -p #{@config['port']} " if @config['port']
       end
