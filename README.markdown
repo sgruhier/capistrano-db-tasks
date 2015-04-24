@@ -9,7 +9,7 @@ Currently
 * It only supports mysql and postgresql (both side remote and local)
 * Synchronize assets remote to local and local to remote
 
-Commands mysql, mysqldump (or pg_dump, psql), bzip2 and unbzip2 must be in your PATH
+Commands mysql, mysqldump (or pg\_dump, psql), bzip2 and unbzip2 (or gzip) must be in your PATH
 
 Feel free to fork and to add more database support or new tasks.
 
@@ -46,6 +46,9 @@ Add to config/deploy.rb:
 
     # if you are highly paranoid and want to prevent any push operation to the server
     set :disallow_pushing, true
+
+    # if you are prefer bzip2/unbzip2 instead of gzip
+    set :compressor, :bzip2
 ```
 
 Add to .gitignore
