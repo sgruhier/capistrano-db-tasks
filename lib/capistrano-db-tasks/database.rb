@@ -41,11 +41,19 @@ module Database
     end
 
     def output_file
-      @output_file ||= "db/#{database}_#{current_time}.sql.bz2"
+      @output_file ||= "#{local_db_dir}/#{prefix_db_with_stage}#{database}_#{current_time}.sql.bz2"
     end
 
     def pgpass
       "PGPASSWORD='#{@config['password']}'" if @config['password']
+    end
+
+    def local_db_dir
+      @local_db_dir ||= @cap.fetch(:local_db_dir) || "db"
+    end
+
+    def prefix_db_with_stage
+      @db_prefix ||= @cap.fetch(:prefix_db_with_stage) ? "#{@cap.fetch(:stage)}" : ""
     end
 
   private
