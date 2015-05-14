@@ -36,6 +36,10 @@ Add to config/deploy.rb:
     # if you want to remove the dump file from the server after downloading
     set :db_remote_clean, true
 
+    # configure the local db filename
+    set :local_db_dir, "tmp"
+    set :prefix_db_with_stage, true #staging_appname_prod_20150501011.sql.bz2
+
     # If you want to import assets, you can change default asset dir (default = system)
     # This directory must be in your shared directory on the server
     set :assets_dir, %w(public/assets public/att)
