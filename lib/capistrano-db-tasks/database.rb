@@ -53,7 +53,7 @@ module Database
     end
 
     def prefix_db_with_stage
-      @db_prefix ||= @cap.fetch(:prefix_db_with_stage) ? "#{@cap.fetch(:stage)}" : ""
+      @db_prefix ||= @cap.fetch(:prefix_db_with_stage) ? "#{@cap.fetch(:stage)}_" : ""
     end
 
   private
