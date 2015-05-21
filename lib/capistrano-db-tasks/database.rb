@@ -56,13 +56,17 @@ module Database
       @db_prefix ||= @cap.fetch(:prefix_db_with_stage) ? "#{@cap.fetch(:stage)}_" : ""
     end
 
+    def dump_cmd_flags
+      @dump_cmd_flags ||= @cap.fetch(:dump_cmd_flags) || ''
+    end
+
   private
 
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database} --lock-tables=false"
+        "mysqldump #{dump_cmd_flags} #{credentials} #{database} --lock-tables=false"
       elsif postgresql?
-        "#{pgpass} pg_dump --no-acl --no-owner #{credentials} #{database}"
+        "#{pgpass} pg_dump #{dump_cmd_flags} --no-acl --no-owner #{credentials} #{database}"
       end
     end
 
