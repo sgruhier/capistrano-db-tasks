@@ -46,10 +46,6 @@ module Database
       @output_file ||= "db/#{database}_#{current_time}.sql.#{compressor.file_extension}"
     end
 
-    def pgpass
-      "PGPASSWORD='#{@config['password']}'" if @config['password']
-    end
-
     def compressor
       @compressor ||= begin
         compressor_klass = @cap.fetch(:compressor).to_s.split('_').collect(&:capitalize).join
@@ -60,11 +56,15 @@ module Database
 
   private
 
+    def pgpass
+      @config['password'] ? "PGPASSWORD='#{@config['password']}'" : ""
+    end
+
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database} --lock-tables=false"
+        "mysqldump #{credentials} #{database} #{dump_cmd_opts}"
       elsif postgresql?
-        "#{pgpass} pg_dump --no-acl --no-owner #{credentials} #{database}"
+        "#{pgpass} pg_dump #{credentials} #{database} #{dump_cmd_opts}"
       end
     end
 
@@ -74,6 +74,23 @@ module Database
       elsif postgresql?
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
         "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+      end
+    end
+
+    def dump_cmd_opts
+      if mysql?
+        "--lock-tables=false #{dump_cmd_ignore_tables_opts}"
+      elsif postgres?
+        "--no-acl --no-owner #{dump_cmd_ignore_tables_opts}"
+      end
+    end
+
+    def dump_cmd_ignore_tables_opts
+      ignore_tables = @cap.fetch(:db_ignore_tables, [])
+      if mysql?
+        ignore_tables.map{ |t| "--ignore-table=#{t}" }.join(" ")
+      elsif postgres?
+        ignore_tables.map{ |t| "--exclude-table=#{t}" }.join(" ")
       end
     end
 

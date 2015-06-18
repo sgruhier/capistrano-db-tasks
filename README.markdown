@@ -36,6 +36,9 @@ Add to config/deploy.rb:
     # if you want to remove the dump file from the server after downloading
     set :db_remote_clean, true
 
+    # if you want to exclude table from dump
+    set :db_ignore_tables, []
+
     # If you want to import assets, you can change default asset dir (default = system)
     # This directory must be in your shared directory on the server
     set :assets_dir, %w(public/assets public/att)
@@ -49,6 +52,7 @@ Add to config/deploy.rb:
 
     # if you are prefer bzip2/unbzip2 instead of gzip
     set :compressor, :bzip2
+
 ```
 
 Add to .gitignore
