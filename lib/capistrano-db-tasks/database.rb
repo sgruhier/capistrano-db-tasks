@@ -79,9 +79,9 @@ module Database
 
     def dump_cmd_opts
       if mysql?
-        "--lock-tables=false #{dump_cmd_ignore_tables_opts}"
-      elsif postgres?
-        "--no-acl --no-owner #{dump_cmd_ignore_tables_opts}"
+        "--lock-tables=false #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
+      elsif postgresql?
+        "--no-acl --no-owner #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
       end
     end
 
@@ -89,8 +89,15 @@ module Database
       ignore_tables = @cap.fetch(:db_ignore_tables, [])
       if mysql?
         ignore_tables.map{ |t| "--ignore-table=#{t}" }.join(" ")
-      elsif postgres?
+      elsif postgresql?
         ignore_tables.map{ |t| "--exclude-table=#{t}" }.join(" ")
+      end
+    end
+
+    def dump_cmd_ignore_data_tables_opts
+      ignore_tables = @cap.fetch(:db_ignore_data_tables, [])
+      if postgresql?
+        ignore_tables.map{ |t| "--exclude-table-data=#{t}" }.join(" ")
       end
     end
 
