@@ -47,7 +47,7 @@ Add to config/deploy.rb:
     # if you are highly paranoid and want to prevent any push operation to the server
     set :disallow_pushing, true
 
-    # if you are prefer bzip2/unbzip2 instead of gzip
+    # if you prefer bzip2/unbzip2 instead of gzip
     set :compressor, :bzip2
 ```
 
