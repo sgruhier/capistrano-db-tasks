@@ -56,6 +56,8 @@ Add to config/deploy.rb:
     # if you prefer bzip2/unbzip2 instead of gzip
     set :compressor, :bzip2
 
+    # If you need to customize the rsync paramters used for assets:*
+    set :rsync_params, '--archive --delete-during --copy-links --keep-dirlinks --progress -vv'
 ```
 
 Add to .gitignore
