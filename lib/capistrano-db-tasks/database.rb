@@ -106,8 +106,15 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
-      @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
+      @cap.info "Loading remote database config"
+      @cap.within @cap.current_path do
+        @cap.with rails_env: @cap.fetch(:rails_env) do
+          config_content = @cap.capture(:rails, 'runner "puts ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml"', '2>/dev/null')
+          # Remove all bundler and rails initialization warnings and errors
+          config_content = config_content.split($/)[config_content.split($/).rindex("---")..-1].join($/)
+        end
+      end
+      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
     end
 
     def dump
@@ -145,8 +152,12 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[fetch(:local_rails_env).to_s]
-      puts "local #{@config}"
+      @cap.info "Loading local database config"
+      config_content = @cap.run_locally do
+        capture(:rails, 'runner "puts ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml"')
+      end
+      config_content = config_content.split($/)[config_content.split($/).rindex("---")..-1].join($/)
+      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
