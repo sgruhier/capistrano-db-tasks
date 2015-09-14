@@ -1,4 +1,3 @@
-require 'pry'
 module Database
   class Base
 
@@ -17,6 +16,7 @@ module Database
     end
 
     def mongo?
+      File.exist?(mongoid_config_path)
     end
 
     def config_path
