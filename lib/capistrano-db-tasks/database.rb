@@ -1,3 +1,4 @@
+require 'pry'
 module Database
   class Base
 
@@ -15,6 +16,21 @@ module Database
       %w(postgresql pg).include? @config['adapter']
     end
 
+    def mongo?
+    end
+
+    def config_path
+      mongo? ? mongoid_config_path : sql_config_path
+    end
+
+    def mongoid_config_path
+      File.join('config', 'mongoid.yml')
+    end
+
+    def sql_config_path
+      File.join('config', 'database.yml')
+    end
+
     def credentials
       credential_params = ""
       username = @config['username'] || @config['user']
@@ -29,26 +45,38 @@ module Database
         credential_params << " -U #{username} " if username
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -p #{@config['port']} " if @config['port']
+      elsif mongo?
+        credential_params << " -u #{username} " if username
+        credential_params << " -p'#{@config['password']}' " if @config['password']
+        credential_params << " -h #{@config['host']} " if @config['host']
+        credential_params << " --port #{@config['port']} " if @config['port']
       end
 
       credential_params
     end
 
     def database
-      @config['database']
+      mongo? ? @config['sessions']['default']['database'] : @config['database']
     end
 
     def current_time
-      Time.now.strftime("%Y-%m-%d-%H%M%S")
+      @curent_time ||= Time.now.strftime("%Y-%m-%d-%H%M%S")
     end
 
     def output_file
-      @output_file ||= "db/#{database}_#{current_time}.sql.#{compressor.file_extension}"
+      @output_file ||=
+        begin
+          if mongo?
+            "dump_#{current_time}"
+          else
+            "db/#{database}_#{current_time}.sql.#{compressor.file_extension}"
+          end
+        end
     end
 
     def compressor
       @compressor ||= begin
-        compressor_klass = @cap.fetch(:compressor).to_s.split('_').collect(&:capitalize).join
+        compressor_klass = mongo? ? "Tar" : @cap.fetch(:compressor).to_s.split('_').collect(&:capitalize).join
         klass = Object.module_eval("::Compressors::#{compressor_klass}", __FILE__, __LINE__)
         klass
       end
@@ -65,6 +93,8 @@ module Database
         "mysqldump #{credentials} #{database} #{dump_cmd_opts}"
       elsif postgresql?
         "#{pgpass} pg_dump #{credentials} #{database} #{dump_cmd_opts}"
+      elsif mongo?
+        "mongodump #{credentials} -d #{database} #{dump_cmd_opts} -o #{output_file}"
       end
     end
 
@@ -74,6 +104,8 @@ module Database
       elsif postgresql?
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
         "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+      elsif mongo?
+        "cd #{File.basename(file)} && mongorestore #{credentials} -d #{database} #{database}"
       end
     end
 
@@ -82,6 +114,8 @@ module Database
         "--lock-tables=false #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
       elsif postgresql?
         "--no-acl --no-owner #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
+      elsif mongo?
+        "#{dump_cmd_ignore_tables_opts}"
       end
     end
 
@@ -91,6 +125,8 @@ module Database
         ignore_tables.map{ |t| "--ignore-table=#{t}" }.join(" ")
       elsif postgresql?
         ignore_tables.map{ |t| "--exclude-table=#{t}" }.join(" ")
+      elsif mongo?
+        ignore_tables.map{ |t| "--excludeCollection=#{t}" }.join(" ")
       end
     end
 
@@ -106,16 +142,21 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
+      @config = @cap.capture("cat #{@cap.current_path}/#{config_path}")
       @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
     end
 
     def dump
-      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
+      if mongo?
+        @cap.execute "cd #{@cap.current_path} && #{dump_cmd} && #{compressor.compress(output_file)}"
+      else
+        @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
+      end
       self
     end
 
     def download(local_file = "#{output_file}")
+      local_file << ".#{compressor.file_extension}" if mongo?
       @cap.download! dump_file_path, local_file
     end
 
@@ -138,14 +179,19 @@ module Database
     private
 
     def dump_file_path
-      "#{@cap.current_path}/#{output_file}"
+      file = "#{@cap.current_path}/#{output_file}"
+
+      file << ".#{compressor.file_extension}" if mongo?
+
+      file
     end
   end
 
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[fetch(:local_rails_env).to_s]
+
+      @config = YAML.load(ERB.new(File.read(config_path)).result)[fetch(:local_rails_env).to_s]
       puts "local #{@config}"
     end
 
@@ -154,7 +200,11 @@ module Database
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
       @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file)}"
-      system("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
+      if mongo?
+        system("#{compressor.decompress("#{file}.#{compressor.file_extension}")} && #{import_cmd(unzip_file)}")
+      else
+        system("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
+      end
       if cleanup
         @cap.info "removing #{unzip_file}"
         File.unlink(unzip_file)
@@ -178,8 +228,8 @@ module Database
 
   class << self
     def check(local_db, remote_db)
-      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
-        raise 'Only mysql or postgresql on remote and local server is supported'
+      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?) || (local_db.mongo? && remote_db.mongo?)
+        raise 'Only mysql, postgresql or mongo (mongoid) on remote and local server is supported'
       end
     end
 
