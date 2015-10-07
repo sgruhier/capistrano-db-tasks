@@ -39,6 +39,9 @@ set :db_ignore_tables, []
 # if you want to exclude table data (but not table schema) from dump
 set :db_ignore_data_tables, []
 
+# if you want to use local db config (config/database.yml)
+set :db_use_local_config, true
+
 # If you want to import assets, you can change default asset dir (default = system)
 # This directory must be in your shared directory on the server
 set :assets_dir, %w(public/assets public/att)

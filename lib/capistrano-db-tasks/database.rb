@@ -2,6 +2,7 @@ module Database
   class Base
     DBCONFIG_BEGIN_FLAG = "__CAPISTRANODB_CONFIG_BEGIN_FLAG__".freeze
     DBCONFIG_END_FLAG = "__CAPISTRANODB_CONFIG_END_FLAG__".freeze
+    DBCONFIG_FILE_NAME = "config/database.yml".freeze
 
     attr_accessor :config, :output_file
 
@@ -105,9 +106,19 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
+
+      rails_env = @cap.fetch(:rails_env)
+
+      if @cap.fetch(:db_use_local_config)
+        @cap.info "Loading local database config #{DBCONFIG_FILE_NAME} (#{rails_env})"
+        config_content = File.read(DBCONFIG_FILE_NAME)
+        @config = YAML.load(ERB.new(config_content).result)[rails_env.to_s]
+        return
+      end
+
       @cap.info "Loading remote database config"
       @cap.within @cap.current_path do
-        @cap.with rails_env: @cap.fetch(:rails_env) do
+        @cap.with rails_env: rails_env do
           dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
           # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
           config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
