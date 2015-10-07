@@ -106,7 +106,11 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
+      if @cap.fetch(:db_use_local_config)
+        @config = File.read("config/database.yml")
+      else
+        @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
+      end
       @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
     end
 
