@@ -45,7 +45,7 @@ module Database
     end
 
     def output_file
-      @output_file ||= "db/#{database}_#{current_time}.sql.#{compressor.file_extension}"
+      @output_file ||= "#{database}_#{current_time}.sql.#{compressor.file_extension}"
     end
 
     def compressor
@@ -117,7 +117,7 @@ module Database
     end
 
     def dump
-      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
+      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', dump_file_path)}"
       self
     end
 
@@ -144,7 +144,11 @@ module Database
     private
 
     def dump_file_path
-      "#{@cap.current_path}/#{output_file}"
+      "#{dump_file_folder}/#{output_file}"
+    end
+
+    def dump_file_folder
+      @cap.fetch(:dump_file_folder) || "#{@cap.current_path}/db"
     end
   end
 
