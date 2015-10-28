@@ -88,7 +88,7 @@ module Database
     def dump_cmd_ignore_tables_opts
       ignore_tables = @cap.fetch(:db_ignore_tables, [])
       if mysql?
-        ignore_tables.map{ |t| "--ignore-table=#{t}" }.join(" ")
+        ignore_tables.map{ |t| "--ignore-table=#{database}.#{t}" }.join(" ")
       elsif postgresql?
         ignore_tables.map{ |t| "--exclude-table=#{t}" }.join(" ")
       end
