@@ -56,6 +56,12 @@ Add to config/deploy.rb:
     # if you prefer bzip2/unbzip2 instead of gzip
     set :compressor, :bzip2
 
+    # If you want to use privileged user to drop/create database on remote or local host (PostgreSQL only)
+    set :db_remote_superuser, 'postgres'
+    set :db_remote_superuser_password, 'secret'
+    set :db_local_superuser, 'postgres'
+    set :db_local_superuser_password, 'secret'
+
 ```
 
 Add to .gitignore

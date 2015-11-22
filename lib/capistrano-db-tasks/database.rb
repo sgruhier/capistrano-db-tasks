@@ -15,13 +15,14 @@ module Database
       %w(postgresql pg).include? @config['adapter']
     end
 
-    def credentials
+    def credentials(options = {superuser: false})
       credential_params = ""
-      username = @config['username'] || @config['user']
+      username = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser".to_sym)) || @config['username'] || @config['user']
+      password = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser_password".to_sym)) || @config['password']
 
       if mysql?
         credential_params << " -u #{username} " if username
-        credential_params << " -p'#{@config['password']}' " if @config['password']
+        credential_params << " -p'#{password}' " if password
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -S #{@config['socket']} " if @config['socket']
         credential_params << " -P #{@config['port']} " if @config['port']
@@ -56,8 +57,9 @@ module Database
 
   private
 
-    def pgpass
-      @config['password'] ? "PGPASSWORD='#{@config['password']}'" : ""
+    def pgpass(options = {superuser: false})
+      password = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser_password".to_sym)) || @config['password']
+      password ? "PGPASSWORD='#{password}'" : ""
     end
 
     def dump_cmd
@@ -68,12 +70,15 @@ module Database
       end
     end
 
-    def import_cmd(file)
+    def import_cmd(file, location = :remote)
       if mysql?
         "mysql #{credentials} -D #{database} < #{file}"
       elsif postgresql?
+        owner = @config['username'] || @config['user']
+        pg_password = pgpass(superuser: true, location: location)
+        pg_credentials = credentials(superuser: true, location: location)
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
-        "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+        "#{pg_password} psql -c \"#{terminate_connection_sql};\" #{pg_credentials}; #{pg_password} dropdb #{pg_credentials} #{database}; #{pg_password} createdb #{pg_credentials} --owner=#{owner} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
       end
     end
 
@@ -153,8 +158,8 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
-      @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file)}"
-      system("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
+      @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file, :local)}"
+      system("#{compressor.decompress(file)} && #{import_cmd(unzip_file, :local)}")
       if cleanup
         @cap.info "removing #{unzip_file}"
         File.unlink(unzip_file)
