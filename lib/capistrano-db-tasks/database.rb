@@ -60,20 +60,32 @@ module Database
       @config['password'] ? "PGPASSWORD='#{@config['password']}'" : ""
     end
 
+    def db_cmd_path
+      nil
+    end
+
+    def db_cmd cmd
+      if db_cmd_path
+        File.join(db_cmd_path, cmd)
+      else
+        cmd
+      end
+    end
+
     def dump_cmd
       if mysql?
-        "mysqldump #{credentials} #{database} #{dump_cmd_opts}"
+        "#{db_cmd('mysqldump')} #{credentials} #{database} #{dump_cmd_opts}"
       elsif postgresql?
-        "#{pgpass} pg_dump #{credentials} #{database} #{dump_cmd_opts}"
+        "#{pgpass} #{db_cmd('pg_dump')} #{credentials} #{database} #{dump_cmd_opts}"
       end
     end
 
     def import_cmd(file)
       if mysql?
-        "mysql #{credentials} -D #{database} < #{file}"
+        "#{db_cmd('mysql')} #{credentials} -D #{database} < #{file}"
       elsif postgresql?
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
-        "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+        "#{pgpass} #{db_cmd('psql')} -c \"#{terminate_connection_sql};\" #{credentials}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
       end
     end
 
@@ -140,6 +152,11 @@ module Database
     def dump_file_path
       "#{@cap.current_path}/#{output_file}"
     end
+
+    def db_cmd_path
+      @cap.fetch(:db_remote_bin_path)
+    end
+
   end
 
   class Local < Base
@@ -173,6 +190,13 @@ module Database
       remote_file = "#{@cap.current_path}/#{output_file}"
       @cap.upload! output_file, remote_file
     end
+
+    private
+
+    def db_cmd_path
+      @cap.fetch(:db_local_bin_path)
+    end
+
   end
 
 
