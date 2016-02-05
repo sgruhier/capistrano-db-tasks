@@ -170,7 +170,7 @@ module Database
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
       # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
-      @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file)}"
+      @cap.info "executing local: #{compressor.decompress(file)} && #{import_cmd(unzip_file)}"
       system("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
       if cleanup
         @cap.info "removing #{unzip_file}"
