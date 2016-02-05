@@ -22,11 +22,14 @@ Add it as a gem:
     gem "capistrano-db-tasks", require: false
 ```
 
+Add to Capfile:
+```ruby
+    require 'capistrano-db-tasks'
+```
+
 Add to config/deploy.rb:
 
 ```ruby
-    require 'capistrano-db-tasks'
-
     # if you haven't already specified
     set :rails_env, "production"
 
@@ -41,6 +44,10 @@ Add to config/deploy.rb:
 
     # if you want to exclude table data (but not table schema) from dump
     set :db_ignore_data_tables, []
+
+    # if you want to define a custom bin path for your database installation
+    set :db_remote_bin_path, '/software/postgresql-9.4.5/bin'    
+    set :db_local_bin_path, '/software/postgresql-9.4.5/bin'    
 
     # If you want to import assets, you can change default asset dir (default = system)
     # This directory must be in your shared directory on the server
