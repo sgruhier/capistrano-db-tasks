@@ -121,6 +121,7 @@ module Database
 
     def dump
       @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
+      @cap.execute("ln -fs #{@cap.current_path}/#{output_file} #{@cap.current_path}/db/latest.sql.#{compressor.file_extension}")
       self
     end
 
@@ -233,6 +234,11 @@ module Database
     def backup(instance)
       remote_db = Database::Remote.new(instance)
       remote_db.dump
+    end
+
+    def restore_latest(instance)
+      remote_db = Database::Remote.new(instance)
+      remote_db.load("#{instance.current_path}/db/latest.sql.#{remote_db.compressor.file_extension}", true)
     end
   end
 end

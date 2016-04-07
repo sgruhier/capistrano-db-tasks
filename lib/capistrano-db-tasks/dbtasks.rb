@@ -37,6 +37,13 @@ namespace :db do
         Database.backup(self)
       end
     end
+
+    desc 'Restores the latest database dump from the remote folder (pairs with db:remote:backup)'
+    task :restore_latest do
+      on roles(:db) do
+        Database.restore_latest(self)
+      end
+    end
   end
 
   namespace :local do

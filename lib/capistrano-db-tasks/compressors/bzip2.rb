@@ -32,7 +32,7 @@ module Compressors
                "-c --stdout > #{to}"
              end
 
-        "bunzip2 -f #{from} #{to}"
+        "bunzip2 -k -f #{from} #{to}"
       end
 
     end
