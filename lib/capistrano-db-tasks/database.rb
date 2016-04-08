@@ -234,6 +234,7 @@ module Database
     def backup(instance)
       remote_db = Database::Remote.new(instance)
       remote_db.dump
+      remote_db.download
     end
 
     def restore_latest(instance)
