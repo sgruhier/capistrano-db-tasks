@@ -42,6 +42,27 @@ namespace :db do
         end
       end
     end
+
+    desc 'Replace your local database using a dump file from the DUMP_FILE ' \
+         'environment variable'
+    task :load do
+      run_locally do
+        if ENV['DUMP_FILE'].nil?
+          fail 'You muse give a dump file using the DUMP_FILE environment ' \
+               'variable'
+        end
+
+        unless File.exist?(ENV['DUMP_FILE'])
+          fail "File #{ENV['DUMP_FILE']} doesn't exists"
+        end
+
+        if fetch(:skip_data_sync_confirm) ||
+           Util.prompt('Are you sure you want to erase your local database ' \
+                       "with the dump file #{ENV['DUMP_FILE']}")
+          Database.local_to_local(self, ENV['DUMP_FILE'])
+        end
+      end
+    end
   end
 
   desc 'Synchronize your local database using remote database data'
