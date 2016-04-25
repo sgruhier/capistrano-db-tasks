@@ -19,48 +19,48 @@ Install
 Add it as a gem:
 
 ```ruby
-    gem "capistrano-db-tasks", require: false
+gem "capistrano-db-tasks", require: false
 ```
 
 Add to config/deploy.rb:
 
 ```ruby
-    require 'capistrano-db-tasks'
+require 'capistrano-db-tasks'
 
-    # if you haven't already specified
-    set :rails_env, "production"
+# if you haven't already specified
+set :rails_env, "production"
 
-    # if you want to remove the local dump file after loading
-    set :db_local_clean, true
+# if you want to remove the local dump file after loading
+set :db_local_clean, true
 
-    # if you want to remove the dump file from the server after downloading
-    set :db_remote_clean, true
+# if you want to remove the dump file from the server after downloading
+set :db_remote_clean, true
 
-    # if you want to exclude table from dump
-    set :db_ignore_tables, []
+# if you want to exclude table from dump
+set :db_ignore_tables, []
 
-    # if you want to exclude table data (but not table schema) from dump
-    set :db_ignore_data_tables, []
+# if you want to exclude table data (but not table schema) from dump
+set :db_ignore_data_tables, []
 
-    # If you want to import assets, you can change default asset dir (default = system)
-    # This directory must be in your shared directory on the server
-    set :assets_dir, %w(public/assets public/att)
-    set :local_assets_dir, %w(public/assets public/att)
+# If you want to import assets, you can change default asset dir (default = system)
+# This directory must be in your shared directory on the server
+set :assets_dir, %w(public/assets public/att)
+set :local_assets_dir, %w(public/assets public/att)
 
-    # if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
-    set :locals_rails_env, "production"
+# if you want to work on a specific local environment (default = ENV['RAILS_ENV'] || 'development')
+set :locals_rails_env, "production"
 
-    # if you are highly paranoid and want to prevent any push operation to the server
-    set :disallow_pushing, true
+# if you are highly paranoid and want to prevent any push operation to the server
+set :disallow_pushing, true
 
-    # if you prefer bzip2/unbzip2 instead of gzip
-    set :compressor, :bzip2
-
+# if you prefer bzip2/unbzip2 instead of gzip
+set :compressor, :bzip2
 ```
 
 Add to .gitignore
-```yml
-    /db/*.sql
+
+```
+db/*.sql
 ```
 
 
@@ -69,21 +69,42 @@ Add to .gitignore
 Available tasks
 ===============
 
-    app:local:sync      || app:pull     # Synchronize your local assets AND database using remote assets and database
-    app:remote:sync     || app:push     # Synchronize your remote assets AND database using local assets and database
+```
+app:local:sync      || app:pull     # Synchronize your local assets AND database using remote assets and database
+app:remote:sync     || app:push     # Synchronize your remote assets AND database using local assets and database
 
-    assets:local:sync   || assets:pull  # Synchronize your local assets using remote assets
-    assets:remote:sync  || assets:push  # Synchronize your remote assets using local assets
+assets:local:sync   || assets:pull  # Synchronize your local assets using remote assets
+assets:remote:sync  || assets:push  # Synchronize your remote assets using local assets
 
-    db:local:sync       || db:pull      # Synchronize your local database using remote database data
-    db:remote:sync      || db:push      # Synchronize your remote database using local database data
+db:local:sync       || db:pull      # Synchronize your local database using remote database data
+db:remote:sync      || db:push      # Synchronize your remote database using local database data
+
+db:local:load                       # Synchronize your local database using local database dump file
+```
 
 Example
 =======
 
-    cap db:pull
-    cap production db:pull # if you are using capistrano-ext to have multistages
+#### Replace your local database with the production database
 
+This use case allows you to have the same data on your machine as your production.
+You then can reproduce or test things before to apply to your production.
+
+```bash
+$ cap db:pull
+$ cap production db:pull # if you are using capistrano-ext to have multistages
+```
+
+#### Replace your local database using a dump file stored on your machine
+
+In case you have a dump file on your machine (you used `db:pull` and kept some files)
+and you want to replay one of them, you can use the `db:local:load`:
+
+```
+$ cap development db:local:load DUMP_FILE=db/yellow_production_2016-04-12-150434.sql
+```
+(You have to create a `config/deploy/development.rb` file containing
+`set :stage, :development` at least in order to get this working)
 
 Contributors
 ============
@@ -92,6 +113,7 @@ Contributors
 * bigfive    (http://github.com/bigfive)
 * jakemauer  (http://github.com/jakemauer)
 * tjoneseng  (http://github.com/tjoneseng)
+* zedtux     (http://github.com/zedtux)
 
 TODO
 ====
