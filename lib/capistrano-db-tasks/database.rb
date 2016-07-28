@@ -12,7 +12,7 @@ module Database
     end
 
     def postgresql?
-      %w(postgresql pg).include? @config['adapter']
+      %w(postgresql pg postgis).include? @config['adapter']
     end
 
     def credentials
