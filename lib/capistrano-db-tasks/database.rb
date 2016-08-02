@@ -112,9 +112,9 @@ module Database
           config_content = @cap.capture(:rails, 'runner "puts ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml"', '2>/dev/null')
           # Remove all bundler and rails initialization warnings and errors
           config_content = config_content.split($/)[config_content.split($/).rindex("---")..-1].join($/)
+          @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
         end
       end
-      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
     end
 
     def dump
