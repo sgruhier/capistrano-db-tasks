@@ -1,5 +1,7 @@
 module Database
   class Base
+    DBCONFIG_BEGIN_FLAG = "__CAPISTRANODB_CONFIG_BEGIN_FLAG__".freeze
+    DBCONFIG_END_FLAG = "__CAPISTRANODB_CONFIG_END_FLAG__".freeze
 
     attr_accessor :config, :output_file
 
@@ -109,9 +111,9 @@ module Database
       @cap.info "Loading remote database config"
       @cap.within @cap.current_path do
         @cap.with rails_env: @cap.fetch(:rails_env) do
-          config_content = @cap.capture(:rails, 'runner "puts ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml"', '2>/dev/null')
-          # Remove all bundler and rails initialization warnings and errors
-          config_content = config_content.split($/)[config_content.split($/).rindex("---")..-1].join($/)
+          dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
+          # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
+          config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/)[1]
           @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
         end
       end
@@ -153,10 +155,11 @@ module Database
     def initialize(cap_instance)
       super(cap_instance)
       @cap.info "Loading local database config"
-      config_content = @cap.run_locally do
-        capture(:rails, 'runner "puts ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml"')
+      dirty_config_content = @cap.run_locally do
+        capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"")
       end
-      config_content = config_content.split($/)[config_content.split($/).rindex("---")..-1].join($/)
+      # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
+      config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/)[1]
       @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
     end
 
@@ -219,5 +222,4 @@ module Database
       File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
   end
-
 end
