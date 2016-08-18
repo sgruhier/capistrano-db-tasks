@@ -152,9 +152,9 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
-      # system("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
+      # execute("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
       @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file)}"
-      system("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
+      execute("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
       if cleanup
         @cap.info "removing #{unzip_file}"
         File.unlink(unzip_file)
@@ -165,13 +165,21 @@ module Database
     end
 
     def dump
-      system "#{dump_cmd} | #{compressor.compress('-', output_file)}"
+      execute "#{dump_cmd} | #{compressor.compress('-', output_file)}"
       self
     end
 
     def upload
       remote_file = "#{@cap.current_path}/#{output_file}"
       @cap.upload! output_file, remote_file
+    end
+
+    private
+
+    def execute(cmd)
+      result = system cmd
+      @cap.error "Failed to execute the local command: #{cmd}" unless result
+      result
     end
   end
 
