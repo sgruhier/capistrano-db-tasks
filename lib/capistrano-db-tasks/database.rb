@@ -183,12 +183,23 @@ module Database
     end
   end
 
-
   class << self
-    def check(local_db, remote_db)
-      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
-        raise 'Only mysql or postgresql on remote and local server is supported'
+    def check(local_db, remote_db = nil)
+      if mysql_db_valid?(local_db, remote_db) ||
+         postgresql_db_valid?(local_db, remote_db)
+        return
       end
+
+      fail 'Only mysql or postgresql on remote and local server is supported'
+    end
+
+    def mysql_db_valid?(local_db, remote_db)
+      local_db.mysql? && (remote_db.nil? || remote_db && remote_db.mysql?)
+    end
+
+    def postgresql_db_valid?(local_db, remote_db)
+      local_db.postgresql? &&
+        (remote_db.nil? || (remote_db && remote_db.postgresql?))
     end
 
     def remote_to_local(instance)
@@ -215,6 +226,13 @@ module Database
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
       File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
-  end
 
+    def local_to_local(instance, dump_file)
+      local_db = Database::Local.new(instance)
+
+      check(local_db)
+
+      local_db.load(dump_file, instance.fetch(:db_local_clean))
+    end
+  end
 end
