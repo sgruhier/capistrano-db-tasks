@@ -32,7 +32,7 @@ namespace :db do
       end
     end
 
-    desc 'Create a database backup remote database data'
+    desc 'Create a database backup using remote database data'
       task :backup do
         on roles(:db) do
           Database.remote_backup(instance)
@@ -56,7 +56,7 @@ namespace :db do
   desc 'Synchronize your local database using remote database data'
   task :pull => "db:local:sync"
 
-  desc 'Create a database backup remote database data'
+  desc 'Create a database backup using remote database data'
   task :backup => "db:remote:backup"
 
   desc 'Synchronize your remote database using local database data'
