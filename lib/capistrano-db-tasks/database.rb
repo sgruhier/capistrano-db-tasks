@@ -1,5 +1,7 @@
 module Database
   class Base
+    DBCONFIG_BEGIN_FLAG = "__CAPISTRANODB_CONFIG_BEGIN_FLAG__".freeze
+    DBCONFIG_END_FLAG = "__CAPISTRANODB_CONFIG_END_FLAG__".freeze
 
     attr_accessor :config, :output_file
 
@@ -106,8 +108,15 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = @cap.capture("cat #{@cap.current_path}/config/database.yml")
-      @config = YAML.load(ERB.new(@config).result)[@cap.fetch(:rails_env).to_s]
+      @cap.info "Loading remote database config"
+      @cap.within @cap.current_path do
+        @cap.with rails_env: @cap.fetch(:rails_env) do
+          dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
+          # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
+          config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/)[1]
+          @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
+        end
+      end
     end
 
     def dump
@@ -145,8 +154,13 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @config = YAML.load(ERB.new(File.read(File.join('config', 'database.yml'))).result)[fetch(:local_rails_env).to_s]
-      puts "local #{@config}"
+      @cap.info "Loading local database config"
+      dirty_config_content = @cap.run_locally do
+        capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"")
+      end
+      # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
+      config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/)[1]
+      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
@@ -216,5 +230,4 @@ module Database
       File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
   end
-
 end
