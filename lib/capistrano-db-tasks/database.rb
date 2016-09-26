@@ -41,7 +41,7 @@ module Database
     end
 
     def current_time
-      Time.now.strftime("%Y-%m-%d-%H%M%S")
+      Time.zone.now.strftime("%Y-%m-%d-%H%M%S")
     end
 
     def output_file
@@ -56,7 +56,7 @@ module Database
       end
     end
 
-  private
+    private
 
     def pgpass
       @config['password'] ? "PGPASSWORD='#{@config['password']}'" : ""
@@ -90,19 +90,16 @@ module Database
     def dump_cmd_ignore_tables_opts
       ignore_tables = @cap.fetch(:db_ignore_tables, [])
       if mysql?
-        ignore_tables.map{ |t| "--ignore-table=#{database}.#{t}" }.join(" ")
+        ignore_tables.map { |t| "--ignore-table=#{database}.#{t}" }.join(" ")
       elsif postgresql?
-        ignore_tables.map{ |t| "--exclude-table=#{t}" }.join(" ")
+        ignore_tables.map { |t| "--exclude-table=#{t}" }.join(" ")
       end
     end
 
     def dump_cmd_ignore_data_tables_opts
       ignore_tables = @cap.fetch(:db_ignore_data_tables, [])
-      if postgresql?
-        ignore_tables.map{ |t| "--exclude-table-data=#{t}" }.join(" ")
-      end
+      ignore_tables.map { |t| "--exclude-table-data=#{t}" }.join(" ") if postgresql?
     end
-
   end
 
   class Remote < Base
@@ -114,7 +111,7 @@ module Database
           dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
           # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
           config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
-          @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
+          @config = YAML.load(config_content).each_with_object({}) { |(k, v), h| h[k.to_s] = v }
         end
       end
     end
@@ -160,14 +157,13 @@ module Database
       raise "Error running command (status=#{status}): #{command}" if status != 0
 
       config_content = stdout.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
-      @config = YAML.load(config_content).inject({}) { |h, (k, v)| h[k.to_s] = v; h }
+      @config = YAML.load(config_content).each_with_object({}) { |(k, v), h| h[k.to_s] = v }
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
-      # execute("bunzip2 -f #{file} && bundle exec rake db:drop db:create && #{import_cmd(unzip_file)} && bundle exec rake db:migrate")
-      @cap.info "executing local: #{compressor.decompress(file)}" && #{import_cmd(unzip_file)}"
+      @cap.info "executing local: #{compressor.decompress(file)} && #{import_cmd(unzip_file)}"
       execute("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
       if cleanup
         @cap.info "removing #{unzip_file}"
@@ -197,12 +193,9 @@ module Database
     end
   end
 
-
   class << self
     def check(local_db, remote_db)
-      unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
-        raise 'Only mysql or postgresql on remote and local server is supported'
-      end
+      raise 'Only mysql or postgresql on remote and local server is supported' unless (local_db.mysql? && remote_db.mysql?) || (local_db.postgresql? && remote_db.postgresql?)
     end
 
     def remote_to_local(instance)
