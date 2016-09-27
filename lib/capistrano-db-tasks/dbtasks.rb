@@ -8,8 +8,8 @@ require File.expand_path("#{File.dirname(__FILE__)}/compressors/gzip")
 set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless fetch(:local_rails_env)
 set :rails_env, fetch(:stage) || 'production' unless fetch(:rails_env)
 set :db_local_clean, false unless fetch(:db_local_clean)
-set :assets_dir, 'system' unless fetch(:assets_dir)
-set :local_assets_dir, 'public' unless fetch(:local_assets_dir)
+set :assets_dir, %w(public/system) unless fetch(:assets_dir)
+set :local_assets_dir, %w(public) unless fetch(:local_assets_dir)
 set :skip_data_sync_confirm, (ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.downcase == 'true')
 set :disallow_pushing, false unless fetch(:disallow_pushing)
 set :compressor, :gzip unless fetch(:compressor)
@@ -56,7 +56,8 @@ namespace :assets do
     desc 'Synchronize your remote assets using local assets'
     task :sync => 'capistrano_db_tasks:check_can_push' do
       on roles(:app) do
-        puts "Assets directories: #{fetch(:assets_dir)}"
+        puts "Remote assets directories: #{self.shared_path}/#{fetch(:assets_dir).join(', ')}"
+        puts "Local assets directories: #{fetch(:local_assets_dir).join(', ')}"
         if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your server assets with local assets")
           Asset.local_to_remote(self)
         end
@@ -68,7 +69,8 @@ namespace :assets do
     desc 'Synchronize your local assets using remote assets'
     task :sync do
       on roles(:app) do
-        puts "Assets directories: #{fetch(:local_assets_dir)}"
+        puts "Remote assets directories: #{self.shared_path}/#{fetch(:assets_dir).join(', ')}"
+        puts "Local assets directories: #{fetch(:local_assets_dir).join(', ')}"
         if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to erase your local assets with server assets")
           Asset.remote_to_local(self)
         end
