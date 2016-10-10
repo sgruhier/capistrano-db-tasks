@@ -120,10 +120,13 @@ module Database
     end
 
     def dump
-      command_output_setting = Airbrussh.configure.command_output
-      Airbrussh.configure.command_output = false
+      # command_output_setting = Airbrussh.configuration.command_output
+      # Airbrussh.configuration.command_output = false
+      @cap.info "Dumping database on remote server (output set to :dot)"
+      SSHKit.config.use_format :dot
       @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
-      Airbrussh.configure.command_output = command_output_setting
+      SSHKit.config.use_format :pretty
+      # Airbrussh.configuration.command_output = command_output_setting
       self
     end
 
