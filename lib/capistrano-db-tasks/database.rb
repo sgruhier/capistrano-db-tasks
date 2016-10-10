@@ -120,7 +120,10 @@ module Database
     end
 
     def dump
+      command_output_setting = Airbrussh.configure.command_output
+      Airbrussh.configure.command_output = false
       @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', output_file)}"
+      Airbrussh.configure.command_output = command_output_setting
       self
     end
 
