@@ -5,7 +5,7 @@ module Asset
     servers = Capistrano::Configuration.env.send(:servers)
     server = servers.detect { |s| s.roles.include?(:app) }
     port = server.netssh_options[:port] || 22
-    user = server.netssh_options[:user]
+    user = server.netssh_options[:user] || server.properties.fetch(:user)
     [cap.fetch(:assets_dir)].flatten.each do |dir|
       system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{user}@#{server}:#{cap.current_path}/#{dir} #{cap.fetch(:local_assets_dir)}")
     end
@@ -15,7 +15,7 @@ module Asset
     servers = Capistrano::Configuration.env.send(:servers)
     server = servers.detect { |s| s.roles.include?(:app) }
     port = server.netssh_options[:port] || 22
-    user = server.netssh_options[:user]
+    user = server.netssh_options[:user] || server.properties.fetch(:user)
     [cap.fetch(:assets_dir)].flatten.each do |dir|
       system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dir} #{user}@#{server}:#{cap.current_path}/#{cap.fetch(:local_assets_dir)}")
     end
