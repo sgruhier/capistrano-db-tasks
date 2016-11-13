@@ -6,8 +6,11 @@ module Asset
     server = servers.detect { |s| s.roles.include?(:app) }
     port = server.netssh_options[:port] || 22
     user = server.netssh_options[:user] || server.properties.fetch(:user)
-    [cap.fetch(:assets_dir)].flatten.each do |dir|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{user}@#{server}:#{cap.current_path}/#{dir} #{cap.fetch(:local_assets_dir)}")
+    dirs = [cap.fetch(:assets_dir)].flatten
+    local_dirs = [cap.fetch(:local_assets_dir)].flatten
+
+    dirs.each_index do |idx|
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{user}@#{server}:#{cap.current_path}/#{dirs[idx]} #{local_dirs[idx]}")
     end
   end
 
@@ -16,8 +19,11 @@ module Asset
     server = servers.detect { |s| s.roles.include?(:app) }
     port = server.netssh_options[:port] || 22
     user = server.netssh_options[:user] || server.properties.fetch(:user)
-    [cap.fetch(:assets_dir)].flatten.each do |dir|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dir} #{user}@#{server}:#{cap.current_path}/#{cap.fetch(:local_assets_dir)}")
+    dirs = [cap.fetch(:assets_dir)].flatten
+    local_dirs = [cap.fetch(:local_assets_dir)].flatten
+
+    dirs.each_index do |idx|
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dirs[idx]} #{user}@#{server}:#{cap.current_path}/#{local_dirs[idx]}")
     end
   end
 
