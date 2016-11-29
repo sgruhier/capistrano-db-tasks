@@ -1,8 +1,6 @@
 module Compressors
   class Bzip2 < Base
-
     class << self
-
       def file_extension
         "bz2"
       end
@@ -34,7 +32,6 @@ module Compressors
 
         "bunzip2 -f #{from} #{to}"
       end
-
     end
   end
 end

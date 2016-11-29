@@ -1,8 +1,6 @@
 module Compressors
   class Gzip < Base
-
     class << self
-
       def file_extension
         "gz"
       end
@@ -34,7 +32,6 @@ module Compressors
 
         "gzip -d #{from} #{to}"
       end
-
     end
   end
 end
