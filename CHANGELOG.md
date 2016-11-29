@@ -4,9 +4,12 @@ Reverse Chronological Order:
 
 ## master
 
-https://github.com/sgruhier/capistrano-db-tasks/compare/v0.4...HEAD
+https://github.com/sgruhier/capistrano-db-tasks/compare/v0.5...HEAD
 
 * Your contribution here!
+
+# 0.5 (Nov 29 2016)
+
 * Fixed iteration on remote/local assets dir #98 (@elthariel)
 * Fetch :user property on server #97 (@elthariel)
 * Add support of ENV['DATABASE_URL'] #54 #70 #99 (@numbata, @fabn, @donbobka, @ktaragorn, @markgandolfo, @leifcr, @elthariel)
