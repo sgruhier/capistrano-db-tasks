@@ -229,5 +229,17 @@ module Database
       remote_db.load(local_db.output_file, instance.fetch(:db_local_clean))
       File.unlink(local_db.output_file) if instance.fetch(:db_local_clean)
     end
+
+    def remote_backup(instance)
+      remote_db = Database::Remote.new(instance)
+      remote_db.dump.download
+
+      file       = remote_db.output_file
+      unzip_file = File.join(File.dirname(file), File.basename(file, '.bz2'))
+      backup_dir = instance.fetch(:db_backup_dir)
+
+      instance.logger.info("Unzipping database backup and storing in #{backup_dir}")
+      system("bunzip2 -f #{file} && mkdir -p #{backup_dir} && mv #{unzip_file} #{backup_dir}")
+    end
   end
 end

@@ -13,6 +13,7 @@ set :local_assets_dir, 'public' unless fetch(:local_assets_dir)
 set :skip_data_sync_confirm, (ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.downcase == 'true')
 set :disallow_pushing, false unless fetch(:disallow_pushing)
 set :compressor, :gzip unless fetch(:compressor)
+set :db_backup_dir, 'db/backups' unless fetch(:db_backup_dir)
 
 namespace :capistrano_db_tasks do
   task :check_can_push do
@@ -27,6 +28,14 @@ namespace :db do
       on roles(:db) do
         if fetch(:skip_data_sync_confirm) || Util.prompt('Are you sure you want to REPLACE THE REMOTE DATABASE with local database')
           Database.local_to_remote(self)
+        end
+      end
+    end
+
+    desc 'Create a database backup using remote database data'
+      task :backup do
+        on roles(:db) do
+          Database.remote_backup(instance)
         end
       end
     end
@@ -46,6 +55,9 @@ namespace :db do
 
   desc 'Synchronize your local database using remote database data'
   task :pull => "db:local:sync"
+
+  desc 'Create a database backup using remote database data'
+  task :backup => "db:remote:backup"
 
   desc 'Synchronize your remote database using local database data'
   task :push => "db:remote:sync"
