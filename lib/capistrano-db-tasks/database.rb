@@ -117,19 +117,19 @@ module Database
     end
 
     def dump
-      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', dump_file_path)}"
+      @cap.execute "cd #{@cap.current_path} && #{dump_cmd} | #{compressor.compress('-', db_dump_file_path)}"
       self
     end
 
     def download(local_file = "#{output_file}")
-      @cap.download! dump_file_path, local_file
+      @cap.download! db_dump_file_path, local_file
     end
 
     def clean_dump_if_needed
       if @cap.fetch(:db_remote_clean)
-        @cap.execute "rm -f #{dump_file_path}"
+        @cap.execute "rm -f #{db_dump_file_path}"
       else
-        @cap.info "leaving #{dump_file_path} on the server (add \"set :db_remote_clean, true\" to deploy.rb to remove)"
+        @cap.info "leaving #{db_dump_file_path} on the server (add \"set :db_remote_clean, true\" to deploy.rb to remove)"
       end
     end
 
@@ -143,12 +143,12 @@ module Database
 
     private
 
-    def dump_file_path
-      "#{dump_file_folder}/#{output_file}"
+    def db_dump_file_path
+      "#{db_dump_dir}/#{output_file}"
     end
 
-    def dump_file_folder
-      @cap.fetch(:dump_file_folder) || "#{@cap.current_path}/db"
+    def db_dump_dir
+      @cap.fetch(:db_dump_dir) || "#{@cap.current_path}/db"
     end
   end
 
