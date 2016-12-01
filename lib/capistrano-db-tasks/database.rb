@@ -105,7 +105,7 @@ module Database
   class Remote < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.info "Loading remote database config"
+      puts "Loading remote database config"
       @cap.within @cap.current_path do
         @cap.with rails_env: @cap.fetch(:rails_env) do
           dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
@@ -129,7 +129,7 @@ module Database
       if @cap.fetch(:db_remote_clean)
         @cap.execute "rm -f #{db_dump_file_path}"
       else
-        @cap.info "leaving #{db_dump_file_path} on the server (add \"set :db_remote_clean, true\" to deploy.rb to remove)"
+        puts "leaving #{db_dump_file_path} on the server (add \"set :db_remote_clean, true\" to deploy.rb to remove)"
       end
     end
 
@@ -155,7 +155,7 @@ module Database
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
-      @cap.info "Loading local database config"
+      puts "Loading local database config"
       command = "#{Dir.pwd}/bin/rails runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\""
       stdout, status = Open3.capture2(command)
       raise "Error running command (status=#{status}): #{command}" if status != 0
@@ -167,15 +167,15 @@ module Database
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
     def load(file, cleanup)
       unzip_file = File.join(File.dirname(file), File.basename(file, ".#{compressor.file_extension}"))
-      @cap.info "executing local: #{compressor.decompress(file)} && #{import_cmd(unzip_file)}"
+      puts "executing local: #{compressor.decompress(file)} && #{import_cmd(unzip_file)}"
       execute("#{compressor.decompress(file)} && #{import_cmd(unzip_file)}")
       if cleanup
-        @cap.info "removing #{unzip_file}"
+        puts "removing #{unzip_file}"
         File.unlink(unzip_file)
       else
-        @cap.info "leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)"
+        puts "leaving #{unzip_file} (specify :db_local_clean in deploy.rb to remove)"
       end
-      @cap.info "Completed database import"
+      puts "Completed database import"
     end
 
     def dump
