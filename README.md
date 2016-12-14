@@ -1,4 +1,4 @@
-# CapistranoDbTasks | [![Code Climate](https://codeclimate.com/github/sgruhier/capistrano-db-tasks/badges/gpa.svg)](https://codeclimate.com/github/sgruhier/capistrano-db-tasks) [![Gem Version](https://badge.fury.io/rb/capistrano-db-tasks.svg)](http://badge.fury.io/rb/capistrano-db-tasks)
+# CapistranoDbTasks | [![Gem Downloads](http://img.shields.io/gem/dt/capistrano-db_sync.svg)](https://rubygems.org/gems/capistrano-db_sync)[![Code Climate](https://codeclimate.com/github/sgruhier/capistrano-db-tasks/badges/gpa.svg)](https://codeclimate.com/github/sgruhier/capistrano-db-tasks) [![Gem Version](https://badge.fury.io/rb/capistrano-db-tasks.svg)](http://badge.fury.io/rb/capistrano-db-tasks)
 
 Add database AND assets tasks to capistrano to a Rails project. It only works with capistrano 3. Older versions until 0.3 works with capistrano 2.
 

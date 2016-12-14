@@ -4,9 +4,14 @@ Reverse Chronological Order:
 
 ## master
 
-https://github.com/sgruhier/capistrano-db-tasks/compare/v0.5...HEAD
+https://github.com/sgruhier/capistrano-db-tasks/compare/v0.6...HEAD
 
 * Your contribution here!
+
+# 0.6 (Dec 14 2016)
+
+* Configurable dump folder #101 #75 #61 (@artempartos, @gmhawash)
+* Fixed previous release bugs (@sitnikovme, @slavajacobson)
 
 # 0.5 (Nov 29 2016)
 
