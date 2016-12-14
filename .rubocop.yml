@@ -1,5 +1,5 @@
 Rails:
-  Enabled: true
+  Enabled: false
 
 AllCops:
   TargetRubyVersion: 2.3

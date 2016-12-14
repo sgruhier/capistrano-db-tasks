@@ -41,7 +41,7 @@ module Database
     end
 
     def current_time
-      Time.zone.now.strftime("%Y-%m-%d-%H%M%S")
+      Time.now.strftime("%Y-%m-%d-%H%M%S")
     end
 
     def output_file
