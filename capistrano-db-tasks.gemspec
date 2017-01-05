@@ -5,7 +5,7 @@ require "capistrano/db_tasks/version"
 
 Gem::Specification.new do |gem|
   gem.name        = "capistrano-db-tasks"
-  gem.version     = CapistranoDbTasks::VERSION
+  gem.version     = Capistrano::DbTasks::VERSION
   gem.authors     = ["Sebastien Gruhier"]
   gem.email       = ["sebastien.gruhier@xilinus.com"]
   gem.homepage    = "https://github.com/sgruhier/capistrano-db-tasks"
