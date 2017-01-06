@@ -1,0 +1,48 @@
+namespace :app do
+  namespace :remote do
+    desc "Synchronize your remote assets AND database using local assets and database"
+    task sync: "capistrano_db_tasks:check_can_push" do
+      if fetch(:skip_data_sync_confirm) || Util.prompt("Are you sure you want to REPLACE THE REMOTE DATABASE AND your remote assets with local database and assets(#{fetch(:assets_dir)})")
+        on roles(:db) do
+          Capistrano::DbTasks::Database.local_to_remote(self)
+        end
+
+        on roles(:app) do
+          Capistrano::DbTasks::Asset.local_to_remote(self)
+        end
+      end
+    end
+  end
+
+  namespace :local do
+    desc "Synchronize your local assets AND database using remote assets and database"
+    task :sync do
+      puts "Local database     : #{Capistrano::DbTasks::Database::Local.new(self).database}"
+      puts "Assets directories : #{fetch(:local_assets_dir)}"
+      if fetch(:skip_data_sync_confirm) || Capistrano::DbTasks::Util.prompt("Are you sure you want to erase your local database AND your local assets with server database and assets(#{fetch(:assets_dir)})")
+        on roles(:db) do
+          Capistrano::DbTasks::Database.remote_to_local(self)
+        end
+
+        on roles(:app) do
+          Capistrano::DbTasks::Asset.remote_to_local(self)
+        end
+      end
+    end
+  end
+
+  desc "Synchronize your local assets AND database using remote assets and database"
+  task pull: "app:local:sync"
+
+  desc "Synchronize your remote assets AND database using local assets and database"
+  task push: "app:remote:sync"
+end
+
+namespace :load do
+  task :defaults do
+    set :local_rails_env, fetch(:local_rails_env, ENV["RAILS_ENV"] || "development")
+    set :skip_data_sync_confirm, fetch(:skip_data_sync_confirm, ENV["SKIP_DATA_SYNC_CONFIRM"].to_s.casecmp("true").zero?)
+    set :disallow_pushing, fetch(:disallow_pushing, false)
+    set :compressor, fetch(:compressor, :gzip)
+  end
+end

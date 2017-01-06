@@ -1,2 +1,2 @@
-require "capistrano"
-require File.expand_path("#{File.dirname(__FILE__)}/capistrano-db-tasks/dbtasks")
+$stderr.puts %(Please, change \"require 'capistrano-db-tasks'\" to \"require 'capistrano/db_tasks'" in your Capfile.)
+require 'capistrano/db_tasks'
