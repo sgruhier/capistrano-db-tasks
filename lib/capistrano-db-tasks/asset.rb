@@ -9,8 +9,12 @@ module Asset
     dirs = [cap.fetch(:assets_dir)].flatten
     local_dirs = [cap.fetch(:local_assets_dir)].flatten
 
+    config_file = server.properties.config_file || nil
+    extra_args = server.properties.extra_args || ''
+    extra_args += " -F #{config_file}" if config_file
+
     dirs.each_index do |idx|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{user}@#{server}:#{cap.current_path}/#{dirs[idx]} #{local_dirs[idx]}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port} #{extra_args}' #{user}@#{server}:#{cap.current_path}/#{dirs[idx]} #{local_dirs[idx]}")
     end
   end
 
@@ -22,8 +26,12 @@ module Asset
     dirs = [cap.fetch(:assets_dir)].flatten
     local_dirs = [cap.fetch(:local_assets_dir)].flatten
 
+    config_file = server.properties.config_file || nil
+    extra_args = server.properties.extra_args || ''
+    extra_args += " -F #{config_file}" if config_file
+
     dirs.each_index do |idx|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dirs[idx]} #{user}@#{server}:#{cap.current_path}/#{local_dirs[idx]}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port} #{extra_args}' ./#{dirs[idx]} #{user}@#{server}:#{cap.current_path}/#{local_dirs[idx]}")
     end
   end
 
