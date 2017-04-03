@@ -8,7 +8,7 @@ module Compressors
       end
 
       def compress(from, to = nil)
-        level = 5
+        level = 3
         from = from == :stdin ? "-" : from
         to = case to
              when '-'
