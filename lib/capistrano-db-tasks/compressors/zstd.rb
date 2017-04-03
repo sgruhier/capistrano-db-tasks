@@ -4,7 +4,7 @@ module Compressors
 
     class << self
       def file_extension
-        "zstd"
+        "zst"
       end
 
       def compress(from, to = nil)
