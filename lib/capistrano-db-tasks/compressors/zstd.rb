@@ -33,7 +33,7 @@ module Compressors
                "-c --stdout > #{to}"
              end
 
-        "#{COMPRESSOR_BIN} -d #{from} #{to}"
+        "#{COMPRESSOR_BIN} -d --rm #{from} #{to}"
       end
     end
   end
