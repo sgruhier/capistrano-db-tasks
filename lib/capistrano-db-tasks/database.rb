@@ -156,7 +156,8 @@ module Database
     def initialize(cap_instance)
       super(cap_instance)
       puts "Loading local database config"
-      command = "#{Dir.pwd}/bin/rails runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\""
+      dir_with_escaped_spaces = Dir.pwd.gsub ' ', '\ '
+      command = "#{dir_with_escaped_spaces}/bin/rails runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\""
       stdout, status = Open3.capture2(command)
       raise "Error running command (status=#{status}): #{command}" if status != 0
 
