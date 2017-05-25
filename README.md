@@ -85,6 +85,17 @@ cap db:pull
 cap production db:pull # if you are using capistrano-ext to have multistages
 ```
 
+# Custom SSH config and extra arguments for the rsync command.
+
+It is possible to pass two extra arguments(capistrano server properties) to the server.
+
+* `config_file` - Use a custom ssh config file.
+* `extra_args` - Pass custom/extra SSH arguments for the rsync command.
+
+```ruby
+server 'my.server.host', user: fetch(:user), roles: %w(app web db), config_file: '.ssh/config',  extra_args: '-A'
+```
+
 ## Contributors
 
 * tilsammans (http://github.com/tilsammansee)
