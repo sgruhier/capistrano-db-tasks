@@ -1,0 +1,57 @@
+Rails:
+  Enabled: false
+
+AllCops:
+  TargetRubyVersion: 2.3
+  Exclude:
+    - 'client/**/*'
+    - 'db/**/*'
+    - 'config/**/*'
+    - 'script/**/*'
+    - 'test/factories/**/*'
+    - 'lib/configus.rb'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - '**/*.haml'
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/ClassLength:
+  Max: 150
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/LineLength:
+  Max: 160
+
+Metrics/AbcSize:
+  Max: 40
+
+Metrics/MethodLength:
+  Max: 30
+
+Metrics/ModuleLength:
+  Max: 150
+
+Metrics/PerceivedComplexity:
+  Max: 10
+
+Style/NumericLiterals:
+  Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/StringLiterals:
+  Enabled: false

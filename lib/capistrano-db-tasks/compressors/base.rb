@@ -1,5 +1,3 @@
 module Compressors
-  class Base
-
-  end
+  class Base; end
 end

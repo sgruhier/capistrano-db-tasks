@@ -4,13 +4,14 @@ require File.expand_path("#{File.dirname(__FILE__)}/asset")
 require File.expand_path("#{File.dirname(__FILE__)}/compressors/base")
 require File.expand_path("#{File.dirname(__FILE__)}/compressors/bzip2")
 require File.expand_path("#{File.dirname(__FILE__)}/compressors/gzip")
+require File.expand_path("#{File.dirname(__FILE__)}/compressors/zstd")
 
 set :local_rails_env, ENV['RAILS_ENV'] || 'development' unless fetch(:local_rails_env)
 set :rails_env, fetch(:stage) || 'production' unless fetch(:rails_env)
 set :db_local_clean, false unless fetch(:db_local_clean)
 set :assets_dir, 'system' unless fetch(:assets_dir)
 set :local_assets_dir, 'public' unless fetch(:local_assets_dir)
-set :skip_data_sync_confirm, (ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.downcase == 'true')
+set :skip_data_sync_confirm, ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.casecmp('true').zero?
 set :disallow_pushing, false unless fetch(:disallow_pushing)
 set :compressor, :gzip unless fetch(:compressor)
 

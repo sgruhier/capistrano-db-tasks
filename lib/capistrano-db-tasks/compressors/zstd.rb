@@ -1,13 +1,17 @@
 module Compressors
-  class Bzip2 < Base
+  class Zstd < Base
+    COMPRESSOR_BIN = :zstd
+
     class << self
       def file_extension
-        "bz2"
+        "zst"
       end
 
       def compress(from, to = nil)
+        level = 3
+        from = from == :stdin ? "-" : from
         to = case to
-             when "-"
+             when '-'
                "-c --stdout"
              when nil
                ""
@@ -15,14 +19,13 @@ module Compressors
                "-c --stdout > #{to}"
              end
 
-        "bzip2 #{from} #{to}"
+        "#{COMPRESSOR_BIN} -#{level} #{from} #{to}"
       end
 
       def decompress(from, to = nil)
-        from = "-f #{from}" unless from == "-"
-
+        from = from == :stdin ? "-" : from
         to = case to
-             when "-"
+             when :stdout
                "-c --stdout"
              when nil
                ""
@@ -30,7 +33,7 @@ module Compressors
                "-c --stdout > #{to}"
              end
 
-        "bunzip2 -f #{from} #{to}"
+        "#{COMPRESSOR_BIN} -d --rm #{from} #{to}"
       end
     end
   end
