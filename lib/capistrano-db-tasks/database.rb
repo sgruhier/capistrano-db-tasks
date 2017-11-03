@@ -14,7 +14,7 @@ module Database
     end
 
     def postgresql?
-      %w(postgresql pg postgis).include? @config['adapter']
+      %w(postgresql pg postgis chronomodel).include? @config['adapter']
     end
 
     def credentials
