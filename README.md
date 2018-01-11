@@ -80,10 +80,26 @@ db:remote:sync      || db:push      # Synchronize your remote database using loc
 
 ## Example
 
-```
+#### Replace your local database with the production database
+
+This use case allows you to have the same data on your machine as your production.
+You then can reproduce or test things before to apply to your production.
+
+```bash
 cap db:pull
 cap production db:pull # if you are using capistrano-ext to have multistages
 ```
+
+#### Replace your local database using a dump file stored on your machine
+
+In case you have a dump file on your machine (you used `db:pull` and kept some files)
+and you want to replay one of them, you can use the `db:local:load`:
+
+```
+cap development db:local:load DUMP_FILE=db/myapp_production_2018-01-10-150434.sql
+```
+(You have to create a `config/deploy/development.rb` file containing
+`set :stage, :development` at least in order to get this working)
 
 ## Contributors
 
