@@ -17,13 +17,14 @@ module Database
       %w(postgresql pg postgis chronomodel).include? @config['adapter']
     end
 
-    def credentials
+    def credentials(options = {superuser: false})
       credential_params = ""
-      username = @config['username'] || @config['user']
+      username = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser".to_sym)) || @config['username'] || @config['user']
+      password = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser_password".to_sym)) || @config['password']
 
       if mysql?
         credential_params << " -u #{username} " if username
-        credential_params << " -p'#{@config['password']}' " if @config['password']
+        credential_params << " -p'#{password}' " if password
         credential_params << " -h #{@config['host']} " if @config['host']
         credential_params << " -S #{@config['socket']} " if @config['socket']
         credential_params << " -P #{@config['port']} " if @config['port']
@@ -58,8 +59,9 @@ module Database
 
     private
 
-    def pgpass
-      @config['password'] ? "PGPASSWORD='#{@config['password']}'" : ""
+    def pgpass(options = {superuser: false})
+      password = (options[:superuser] && @cap.fetch("db_#{options[:location]}_superuser_password".to_sym)) || @config['password']
+      password ? "PGPASSWORD='#{password}'" : ""
     end
 
     def dump_cmd
@@ -70,12 +72,15 @@ module Database
       end
     end
 
-    def import_cmd(file)
+    def import_cmd(file, location = :remote)
       if mysql?
         "mysql #{credentials} -D #{database} < #{file}"
       elsif postgresql?
+        owner = @config['username'] || @config['user']
+        pg_password = pgpass(superuser: true, location: location)
+        pg_credentials = credentials(superuser: true, location: location)
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
-        "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials} #{database}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+        "#{pg_password} psql -c \"#{terminate_connection_sql};\" #{pg_credentials} #{database}; #{pg_password} dropdb #{pg_credentials} #{database}; #{pg_password} createdb #{pg_credentials} --owner=#{owner} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
       end
     end
 
@@ -108,10 +113,8 @@ module Database
       puts "Loading remote database config"
       @cap.within @cap.current_path do
         @cap.with rails_env: @cap.fetch(:rails_env) do
-          dirty_config_content = @cap.capture(:rails, "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\"", '2>/dev/null')
-          # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
-          config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
-          @config = YAML.load(config_content).each_with_object({}) { |(k, v), h| h[k.to_s] = v }
+          config_content = @cap.capture(:cat, "config/database.yml")
+          @config = YAML.load(config_content)[@cap.fetch(:rails_env).to_s].each_with_object({}) { |(k, v), h| h[k.to_s] = v }
         end
       end
     end
@@ -157,12 +160,12 @@ module Database
       super(cap_instance)
       puts "Loading local database config"
       dir_with_escaped_spaces = Dir.pwd.gsub ' ', '\ '
-      command = "#{dir_with_escaped_spaces}/bin/rails runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\""
-      stdout, status = Open3.capture2(command)
+      command = "cat config/database.yml"
+      config_content, status = Open3.capture2(command)
       raise "Error running command (status=#{status}): #{command}" if status != 0
 
-      config_content = stdout.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
-      @config = YAML.load(config_content).each_with_object({}) { |(k, v), h| h[k.to_s] = v }
+      local_env = ENV['RAILS_ENV'] || 'development'
+      @config = YAML.load(config_content)[local_env].each_with_object({}) { |(k, v), h| h[k.to_s] = v }
     end
 
     # cleanup = true removes the mysqldump file after loading, false leaves it in db/
