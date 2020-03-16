@@ -10,11 +10,12 @@ module Database
     end
 
     def mysql?
-      @config['adapter'] =~ /^mysql/
+      @config['adapter'].strip =~ /^mysql/
     end
 
     def postgresql?
-      %w(postgresql pg postgis chronomodel).include? @config['adapter']
+       adapter = @config['adapter'].strip
+       %{postgresql pg}.include? adapter
     end
 
     def credentials
