@@ -76,6 +76,7 @@ assets:remote:sync  || assets:push  # Synchronize your remote assets using local
 
 db:local:sync       || db:pull      # Synchronize your local database using remote database data
 db:remote:sync      || db:push      # Synchronize your remote database using local database data
+db:remote:backup    || db:backup    # Backup the remote database and download it
 ```
 
 ## Example
