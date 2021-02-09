@@ -12,8 +12,6 @@ Gem::Specification.new do |gem|
   gem.summary     = "A collection of capistrano tasks for syncing assets and databases"
   gem.description = "A collection of capistrano tasks for syncing assets and databases"
 
-  gem.rubyforge_project = "capistrano-db-tasks"
-
   gem.licenses      = ["MIT"]
 
   gem.files         = `git ls-files`.split("\n")

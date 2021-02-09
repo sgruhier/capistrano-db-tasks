@@ -215,7 +215,7 @@ module Database
         (remote_db.nil? || (remote_db && remote_db.postgresql?))
     end
 
-    def remote_to_local(instance)
+    def remote_to_local(instance, sync=true)
       local_db  = Database::Local.new(instance)
       remote_db = Database::Remote.new(instance)
 
@@ -226,7 +226,7 @@ module Database
       ensure
         remote_db.clean_dump_if_needed
       end
-      local_db.load(remote_db.output_file, instance.fetch(:db_local_clean))
+      local_db.load(remote_db.output_file, instance.fetch(:db_local_clean)) if sync
     end
 
     def local_to_remote(instance)

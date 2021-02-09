@@ -31,6 +31,16 @@ namespace :db do
         end
       end
     end
+
+    desc 'Backup the remote database data and download it'
+    task :backup do
+      on roles(:db) do
+        if fetch(:skip_data_sync_confirm) || Util.prompt('Are you sure you want to erase your local database with server database')
+          puts "Downloading your backup file for remote database..."
+          Database.remote_to_local(self, false)
+        end
+      end
+    end
   end
 
   namespace :local do
@@ -65,6 +75,9 @@ namespace :db do
       end
     end
   end
+
+  desc 'Backup the remote database and download it'
+  task :backup => "db:remote:backup"
 
   desc 'Synchronize your local database using remote database data'
   task :pull => "db:local:sync"
