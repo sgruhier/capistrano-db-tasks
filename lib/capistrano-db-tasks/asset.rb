@@ -23,7 +23,7 @@ module Asset
     local_dirs = [cap.fetch(:local_assets_dir)].flatten
 
     dirs.each_index do |idx|
-      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' ./#{dirs[idx]} #{user}@#{server}:#{cap.current_path}/#{local_dirs[idx]}")
+      system("rsync -a --del -L -K -vv --progress --rsh='ssh -p #{port}' #{local_dirs[idx]}/ #{user}@#{server}:#{cap.current_path}/#{dirs[idx]}")
     end
   end
 
