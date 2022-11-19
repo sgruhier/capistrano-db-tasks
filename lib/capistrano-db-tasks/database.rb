@@ -128,7 +128,9 @@ module Database
     end
 
     def download(local_file = "#{output_file}")
-      @cap.download! db_dump_file_path, local_file
+      @cap.within @cap.current_path do
+        @cap.download! db_dump_file_path, local_file
+      end
     end
 
     def clean_dump_if_needed
@@ -192,7 +194,9 @@ module Database
 
     def upload
       remote_file = "#{@cap.current_path}/#{output_file}"
-      @cap.upload! output_file, remote_file
+      @cap.within @cap.current_path do
+        @cap.upload! output_file, remote_file
+      end
     end
 
     private
@@ -229,6 +233,8 @@ module Database
 
       begin
         remote_db.dump.download
+      rescue Exception => e
+        puts "E[#{e.class}]: #{e.message}"
       ensure
         remote_db.clean_dump_if_needed
       end
