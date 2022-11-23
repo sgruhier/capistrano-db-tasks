@@ -17,9 +17,8 @@ module Database
       %w(postgresql pg postgis chronomodel).include? @config['adapter']
     end
 
-    def credentials
+    def credentials username = self.username
       credential_params = ""
-      username = @config['username'] || @config['user']
 
       if mysql?
         credential_params << " -u #{username} " if username
@@ -38,6 +37,10 @@ module Database
 
     def database
       @config['database']
+    end
+
+    def username
+      @config['username'] || @config['user']
     end
 
     def current_time
@@ -160,6 +163,59 @@ module Database
     end
   end
 
+  class RemoteFake < Base
+    def initialize(cap_instance)
+      super(cap_instance)
+      @cap.info "[db:remote] Loading remote database config"
+      @cap.within @cap.release_path do
+        @cap.with rails_env: @cap.fetch(:rails_env) do
+          string = 'ra = Rails::Application;rails_config = ra::Configuration.new(ra.find_root(ra.called_from)).database_configuration'
+          run_string = "runner \"#{string};puts rails_config['#{fetch :rails_env}'].to_yaml\""
+          config_content =
+            if @cap.capture(:ruby, "bin/rails -v", '2>/dev/null').size > 0
+              @cap.capture(:ruby, "bin/rails #{run_string}", '2>/dev/null')
+            else
+              @cap.capture(:rails, run_string, '2>/dev/null')
+            end
+
+          @config = YAML.load(config_content)
+        end
+      end
+    end
+
+    def createrole
+      if mysql?
+        @cap.execute("mysql-create-user #{target_username} #{@config['password']} || true")
+      elsif postgresql?
+        @cap.execute("createuser #{credentials} -dlrs #{target_username} #{with_password} || true")
+      end
+
+      self
+    end
+
+    def createdb
+      if mysql?
+        @cap.execute("mysql-grant-db #{target_username} #{database} || true")
+      elsif postgresql?
+        @cap.execute("createdb #{credentials(target_username)} #{database} || true")
+      end
+
+      self
+    end
+
+    def with_password
+       @config['password'] ? "-W <<< #{@config['password']}" : "-w"
+    end
+
+    def username
+      'postgres'
+    end
+
+    def target_username
+      @config['username'] || @config['user']
+    end
+  end
+
   class Local < Base
     def initialize(cap_instance)
       super(cap_instance)
@@ -209,7 +265,7 @@ module Database
   end
 
   class << self
-    def check(local_db, remote_db = nil)
+    def check(local_db = nil, remote_db = nil)
       return if mysql_db_valid?(local_db, remote_db)
       return if postgresql_db_valid?(local_db, remote_db)
 
@@ -217,12 +273,28 @@ module Database
     end
 
     def mysql_db_valid?(local_db, remote_db)
-      local_db.mysql? && (remote_db.nil? || remote_db && remote_db.mysql?)
+      (local_db.nil? || local_db && local_db.mysql?) && (remote_db.nil? || remote_db && remote_db.mysql?)
     end
 
     def postgresql_db_valid?(local_db, remote_db)
-      local_db.postgresql? &&
+      (local_db.nil? || (local_db && local_db.postgresql?)) &&
         (remote_db.nil? || (remote_db && remote_db.postgresql?))
+    end
+
+    def createrole(instance)
+      remote_db = Database::RemoteFake.new(instance)
+
+      check(nil, remote_db)
+
+      remote_db.createrole
+    end
+
+    def createdb(instance)
+      remote_db = Database::RemoteFake.new(instance)
+
+      check(nil, remote_db)
+
+      remote_db.createdb
     end
 
     def remote_to_local(instance)

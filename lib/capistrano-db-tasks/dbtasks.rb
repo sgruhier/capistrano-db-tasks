@@ -31,6 +31,20 @@ namespace :db do
         end
       end
     end
+
+    desc 'Create rails DB role on remote server'
+    task :createrole do
+      on roles(:db) do
+        Database.createrole(self)
+      end
+    end
+
+    desc 'Create rails DB database on remote server'
+    task createdb: :createrole do
+      on roles(:db) do
+        Database.createdb(self)
+      end
+    end
   end
 
   namespace :local do
