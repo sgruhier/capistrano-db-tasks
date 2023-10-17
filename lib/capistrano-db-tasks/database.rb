@@ -4,6 +4,7 @@ module Database
     DBCONFIG_END_FLAG = "__CAPISTRANODB_CONFIG_END_FLAG__".freeze
 
     attr_accessor :config, :output_file
+    attr_reader :rvm_ruby
 
     def initialize(cap_instance)
       @cap = cap_instance
@@ -59,6 +60,28 @@ module Database
       end
     end
 
+    def with_rvm?
+       @rvm_ruby ||= @cap.capture(:rvm, "current", '2>/dev/null')
+
+       !@rvm_ruby.empty?
+    end
+
+    def run_with_rvm run_string
+       if @cap.capture(:rvm, rvm_ruby, "do", "bin/rails -v", '2>/dev/null').size > 0
+          @cap.capture(:rvm, rvm_ruby, "do", "bin/rails #{run_string}")
+       else
+          @cap.capture(:rvm, rvm_ruby, "do", "rails", run_string, '2>/dev/null')
+       end
+    end
+
+    def run_plain run_string
+       if @cap.capture(:ruby, "bin/rails -v", '2>/dev/null').size > 0
+          @cap.capture(:ruby, "bin/rails #{run_string}")
+       else
+          @cap.capture(:rails, run_string, '2>/dev/null')
+       end
+    end
+
     private
 
     def pgpass
@@ -112,12 +135,7 @@ module Database
       @cap.within @cap.current_path do
         @cap.with rails_env: @cap.fetch(:rails_env) do
           run_string = "runner \"puts '#{DBCONFIG_BEGIN_FLAG}' + ActiveRecord::Base.connection.instance_variable_get(:@config).to_yaml + '#{DBCONFIG_END_FLAG}'\""
-          dirty_config_content =
-            if @cap.capture(:ruby, "bin/rails -v", '2>/dev/null').size > 0
-              @cap.capture(:ruby, "bin/rails #{run_string}", '2>/dev/null')
-            else
-              @cap.capture(:rails, run_string, '2>/dev/null')
-            end
+          dirty_config_content = with_rvm? ? run_with_rvm(run_string) : run_plain(run_string)
           # Remove all warnings, errors and artefacts produced by bunlder, rails and other useful tools
           config_content = dirty_config_content.match(/#{DBCONFIG_BEGIN_FLAG}(.*?)#{DBCONFIG_END_FLAG}/m)[1]
           @config = YAML.load(config_content).each_with_object({}) { |(k, v), h| h[k.to_s] = v }
@@ -171,12 +189,7 @@ module Database
         @cap.with rails_env: @cap.fetch(:rails_env) do
           string = 'ra = Rails::Application;rails_config = ra::Configuration.new(ra.find_root(ra.called_from)).database_configuration'
           run_string = "runner \"#{string};puts rails_config['#{fetch :rails_env}'].to_yaml\""
-          config_content =
-            if @cap.capture(:ruby, "bin/rails -v", '2>/dev/null').size > 0
-              @cap.capture(:ruby, "bin/rails #{run_string}", '2>/dev/null')
-            else
-              @cap.capture(:rails, run_string, '2>/dev/null')
-            end
+          config_content = with_rvm? ? run_with_rvm(run_string) : run_plain(run_string)
 
           @config = YAML.load(config_content)
         end
