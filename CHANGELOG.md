@@ -7,6 +7,7 @@ Reverse Chronological Order:
 https://github.com/sgruhier/capistrano-db-tasks/compare/v0.6...HEAD
 
 * Your contribution here!
+* Add support for passing extra options to the database dump and load commands (@someonewithpc)
 * Added support for [zstd compressor](http://facebook.github.io/zstd/) (@ocha)
 
 # 0.6 (Dec 14 2016)

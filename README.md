@@ -55,6 +55,10 @@ set :disallow_pushing, true
 
 # if you prefer bzip2/unbzip2 instead of gzip
 set :compressor, :bzip2
+
+# if you need to add extra command line options to the import or export commands
+set :db_dump_extra_opts, ""
+set :db_import_extra_opts, ""
 ```
 
 Add to .gitignore

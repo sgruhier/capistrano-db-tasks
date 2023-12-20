@@ -72,18 +72,18 @@ module Database
 
     def import_cmd(file)
       if mysql?
-        "mysql #{credentials} -D #{database} < #{file}"
+        "mysql #{credentials} -D #{database} #{import_cmd_opts} < #{file}"
       elsif postgresql?
         terminate_connection_sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '#{database}' AND pid <> pg_backend_pid();"
-        "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials} #{database}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} < #{file}"
+        "#{pgpass} psql -c \"#{terminate_connection_sql};\" #{credentials} #{database}; #{pgpass} dropdb #{credentials} #{database}; #{pgpass} createdb #{credentials} #{database}; #{pgpass} psql #{credentials} -d #{database} #{import_cmd_opts} < #{file}"
       end
     end
 
     def dump_cmd_opts
       if mysql?
-        "--lock-tables=false #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
+        "--lock-tables=false #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts} #{dump_cmd_extra_opts}"
       elsif postgresql?
-        "--no-acl --no-owner #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts}"
+        "--no-acl --no-owner #{dump_cmd_ignore_tables_opts} #{dump_cmd_ignore_data_tables_opts} #{dump_cmd_extra_opts}"
       end
     end
 
@@ -99,6 +99,18 @@ module Database
     def dump_cmd_ignore_data_tables_opts
       ignore_tables = @cap.fetch(:db_ignore_data_tables, [])
       ignore_tables.map { |t| "--exclude-table-data=#{t}" }.join(" ") if postgresql?
+    end
+
+    def dump_cmd_extra_opts
+      @cap.fetch(:db_dump_extra_opts, "")
+    end
+
+    def import_cmd_opts
+      import_cmd_extra_opts
+    end
+
+    def import_cmd_extra_opts
+      @cap.fetch(:db_import_extra_opts, "")
     end
   end
 
