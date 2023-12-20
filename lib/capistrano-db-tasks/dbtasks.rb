@@ -14,6 +14,8 @@ set :local_assets_dir, 'public' unless fetch(:local_assets_dir)
 set :skip_data_sync_confirm, ENV['SKIP_DATA_SYNC_CONFIRM'].to_s.casecmp('true').zero?
 set :disallow_pushing, false unless fetch(:disallow_pushing)
 set :compressor, :gzip unless fetch(:compressor)
+set :db_dump_extra_opts, '' unless fetch(:db_dump_extra_opts)
+set :db_import_extra_opts, '' unless fetch(:db_import_extra_opts)
 
 namespace :capistrano_db_tasks do
   task :check_can_push do
